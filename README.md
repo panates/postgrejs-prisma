@@ -4,13 +4,91 @@ A [Prisma](https://www.prisma.io) driver adapter for
 [PostgreJS](https://github.com/panates/postgrejs), so a Prisma schema runs on PostgreJS's
 wire-protocol client instead of `pg`.
 
+## Install
+
+```sh
+npm install prisma-postgrejs postgrejs @prisma/driver-adapter-utils
+```
+
+`postgrejs` (>=3.10.0 <4) and `@prisma/driver-adapter-utils` (>=7.10.0 <9) are peer dependencies -
+the second one because `@prisma/client` does not bring it along. Node >=22.
+
+## Usage
+
+At Prisma 7 a driver adapter is how a client connects, so there is no `url` in the datasource block:
+
+```prisma
+datasource db {
+  provider = "postgresql"
+}
+```
+
+Pass the adapter where you would have passed `PrismaPg`:
+
+```ts
+import { PrismaClient } from './generated/prisma/client.js';
+import { PrismaPostgreJS } from 'prisma-postgrejs';
+
+const adapter = new PrismaPostgreJS('postgresql://user:secret@localhost:5432/mydb');
+const prisma = new PrismaClient({ adapter });
+
+await prisma.user.findMany({ where: { active: true } });
+```
+
+Three ways to say where the database is:
+
+```ts
+new PrismaPostgreJS('postgresql://user:secret@localhost:5432/mydb'); // a connection string
+new PrismaPostgreJS({ host: 'localhost', database: 'mydb', max: 10 }); // PostgreJS's pool options
+new PrismaPostgreJS(pool); // a Pool you made yourself
+```
+
+`prisma.$disconnect()` closes a pool this package opened. A `Pool` you passed in stays yours - it is
+left open, so it can go on serving whatever else is using it.
+
+### Options
+
+```ts
+new PrismaPostgreJS('postgresql://user:secret@localhost:5432/mydb', {
+  schema: 'my_schema',
+  pipeline: true,
+  onPoolError: err => logger.error(err),
+});
+```
+
+| option | default | what it does |
+| --- | --- | --- |
+| `schema` | `?schema=` on the connection string | the schema the engine qualifies its SQL with |
+| `pipeline` | `true` | lets a statement share a pooled connection with statements already in flight - what the concurrency rows under [Why](#why) measure. `false` gives each statement the connection to itself |
+| `onPoolError` | - | called when a pooled connection is lost or one could not be opened. Prisma has nowhere to report either, so without this they are only visible as the failure of whatever query was in flight |
+
+### Migrations
+
+`prisma migrate` and `prisma db push` connect with the CLI's own built-in connector rather than
+through the adapter - nothing in `prisma` or `@prisma/client` calls `connectToShadowDb` - so they
+need a URL of their own in `prisma.config.ts`, separately from the adapter `PrismaClient` gets:
+
+```ts
+import { defineConfig } from 'prisma/config';
+
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+  datasource: { url: process.env.DATABASE_URL },
+});
+```
+
 ## Why
 
-Prisma's query engine converts whatever an adapter returns into its own values, so PostgreJS's
-rich decoding - `Interval`, `Range`, `Numeric`, the geometric family - buys nothing here: 23 of the
-74 PostgreSQL types measured are rejected by Prisma in *both* `prisma-postgrejs` and
-`@prisma/adapter-pg`. The case for this package is protocol throughput and nothing else, and it was
-measured before any code was written - then again from the code:
+It is a drop-in swap for `@prisma/adapter-pg`: the same `PrismaClient({ adapter })` call, the same
+schema, the same queries. What you get for it:
+
+- **Faster queries**, measured end to end through a real `PrismaClient` - most of all where an
+  application spends its time, on round trips and on concurrency.
+- **Correct values in two places the reference adapter gets silently wrong** - a `timetz` on any
+  non-zero offset, and `money` in raw SQL. Details under
+  [How it differs](#how-it-differs-from-prismaadapter-pg).
+- **Checked against Prisma's own functional suite** - 1250 of its tests pass, with
+  `@prisma/adapter-pg` run over the same server in the same invocation as the control.
 
 | workload | `@prisma/adapter-pg` | `prisma-postgrejs` | speedup |
 | --- | --- | --- | --- |
@@ -25,15 +103,10 @@ measured before any code was written - then again from the code:
 Prisma 7.10.0, PostgreSQL 18.4, loopback, Node 24. Medians; how that was measured and how reliable
 each row is are in [How the numbers were measured](#how-the-numbers-were-measured).
 
-**Read these per workload, not as one number.** A bulk read of ordinary scalars is 1.15x; a
-round-trip-bound query is 1.4x; concurrency past the pool size is where it reaches 2.5x. Nothing
-here is 2.5x across the board.
-
-The win is round trips and the socket, not decoding: Prisma converts whatever an adapter returns, so
-a decode that arrives in a richer form is re-converted away. What survives is that PostgreJS needs
-fewer round trips - it takes the isolation level on the `BEGIN` where the reference sends a second
-statement - and that it can put more than one statement on a connection at a time, which is what
-the last three rows measure.
+**The gain grows with the shape of the workload.** A bulk read of ordinary scalars gains 1.15x; a
+round-trip-bound query 1.4x; and once there is more concurrency than pool, 2.5x - that last one is
+what a web application under load actually looks like. [Where the speed comes
+from](#where-the-speed-comes-from) explains which part of the client earns each row.
 
 ## How the numbers were measured
 
@@ -64,12 +137,9 @@ column is for.
 
 ## Where the speed comes from
 
-PostgreJS's headline feature - decoding 125 PostgreSQL types into real JavaScript values, with a
-class of its own for `Interval`, `Range`, `Numeric` and the geometric family - is worth **nothing**
-here, and that is worth saying plainly. Prisma's engine converts whatever an adapter hands it into
-its own values, so a richer decode is re-converted away; 23 of the 74 types measured cannot be
-carried at all. Everything below is protocol and wire work instead, and each item was measured on
-its own.
+Five things, each measured on its own. All five are properties of how the client talks to
+PostgreSQL rather than of how it decodes values - so the gain holds whatever column types your
+schema uses, and it is largest exactly where an application is slowest: waiting on the network.
 
 ### It reads the wire format, not a rendering of it
 
@@ -246,13 +316,6 @@ passes that through. PostgreJS reports `rowsAffected` only for `INSERT`/`UPDATE`
 where the two agree exactly. This adapter falls back to the row count so that the number
 `$executeRaw` gives back does not change when you switch - it was found by the differential suite,
 not by reading either implementation.
-
-## Migrations
-
-`prisma migrate` and `prisma db push` **do not go through the driver adapter**. At 7.10.0 the CLI
-connects with its own built-in connector using `datasource.url` from `prisma.config.ts`, and
-nothing in `prisma` or `@prisma/client` calls `connectToShadowDb`. You need a connection URL in
-`prisma.config.ts` for migrations, separately from the adapter you pass to `PrismaClient`.
 
 ## Requirements
 
