@@ -24,7 +24,10 @@ export class PrismaPostgreJSAdapter
     options: PrismaPostgreJSOptions | undefined,
     dispose?: () => Promise<void>,
   ) {
-    super((sql, params) => pool.query(sql, { ...QUERY_OPTIONS, params }));
+    super(
+      (sql, params) => pool.query(sql, { ...QUERY_OPTIONS, params }),
+      sql => pool.execute(sql),
+    );
     this.pool = pool;
     this.options = options;
     this.dispose_ = dispose;

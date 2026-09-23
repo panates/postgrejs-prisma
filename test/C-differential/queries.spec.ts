@@ -2,7 +2,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import type { SqlDriverAdapter } from '@prisma/driver-adapter-utils';
 import { expect } from 'expect';
 import { PrismaPostgreJS } from '../../src/index.js';
-import { sqlQuery } from '../_support/live.js';
+import { sqlQuery, tableName } from '../_support/live.js';
 
 /**
  * The same call through this adapter and through `@prisma/adapter-pg`, deep
@@ -210,23 +210,21 @@ describe('C-differential: against @prisma/adapter-pg', () => {
       expect(r.ourTypes).toStrictEqual(r.theirTypes);
     });
 
-    it('two statements in one executeRaw: we refuse, the reference runs them', async () => {
-      // Prisma's contract puts scripts on a different method: executeRaw is
-      // "Execute a query" and executeScript is "Execute multiple SQL statements
-      // separated by semicolon" (driver-adapter-utils@7.10.0 index.d.ts:297,
-      // :324). The reference takes a script here anyway because `pg` chooses
-      // its protocol by whether the call had parameters - requiresPreparation()
-      // is false without values (pg@8.23.0 lib/query.js:53-57), so it sends a
-      // simple Query and PostgreSQL allows several commands in one. The same
-      // statement silently loses its prepared statement and its per-statement
-      // error boundary to get there. PostgreJS keeps query() on the extended
-      // protocol and has execute() for scripts, so this one raises.
-      const table = `t_multi_${Math.random().toString(36).slice(2, 8)}`;
-      const sql = `create table "${table}"(a int); insert into "${table}" values(1)`;
+    it('two statements in one executeRaw: both run them, we count them', async () => {
+      // Prisma gives a user no other way to run a script - `$executeRaw` is the
+      // only raw-exec API, and `@prisma/client` never calls the contract's
+      // `executeScript`. So a `;`-separated string arrives at `executeRaw`, and
+      // the adapter is the layer that has to notice.
+      //
+      // The counts differ, and ours is the one the contract asks for. `pg`
+      // returns an array of results for a multi-command simple query, and
+      // `@prisma/adapter-pg` does `result.rowCount ?? 0` over it - an array has
+      // no rowCount, so it answers 0 whatever the script did.
+      const table = tableName('multi');
+      const sql = `create table "${table}"(a int); insert into "${table}" values(1),(2)`;
       try {
-        await expect(ours.executeRaw(sqlQuery(sql))).rejects.toMatchObject({
-          cause: { kind: 'postgres', code: '42601' },
-        });
+        expect(await ours.executeRaw(sqlQuery(sql))).toStrictEqual(2);
+        await ours.executeScript(`drop table "${table}"`);
         expect(await theirs.executeRaw(sqlQuery(sql))).toStrictEqual(0);
       } finally {
         await theirs
@@ -235,19 +233,60 @@ describe('C-differential: against @prisma/adapter-pg', () => {
       }
     });
 
-    it('executeScript is the way to run several, and it works', async () => {
-      const table = `t_script_${Math.random().toString(36).slice(2, 8)}`;
+    it('sums the rows every statement in the script changed', async () => {
+      const table = tableName('sum');
       try {
-        await ours.executeScript(
-          `create table "${table}"(a int); insert into "${table}" values(1)`,
+        await ours.executeScript(`create table "${table}"(a int)`);
+        const n = await ours.executeRaw(
+          sqlQuery(
+            `insert into "${table}" values(1),(2),(3);` +
+              `update "${table}" set a = a + 1;` +
+              `delete from "${table}" where a = 2`,
+          ),
         );
-        const r = await ours.queryRaw(sqlQuery(`select a from "${table}"`));
-        expect(r.rows).toStrictEqual([[1]]);
+        // 3 inserted + 3 updated + 1 deleted. A CREATE or a SELECT in the
+        // script contributes nothing, which is what `rowsAffected` means.
+        expect(n).toStrictEqual(7);
       } finally {
         await ours
           .executeScript(`drop table if exists "${table}"`)
           .catch(() => undefined);
       }
+    });
+
+    it('runs a script inside a transaction too, and rolls it back with one', async () => {
+      // The statement is routed by scanning it, before anything is sent, so
+      // the transaction is never put in the way. Asking the server first -
+      // send it and retry on `42601` - cannot work here: the refusal aborts
+      // the transaction, and the retry then answers `25P02`.
+      const table = tableName('txmulti');
+      const tx = await ours.startTransaction();
+      try {
+        const n = await tx.executeRaw(
+          sqlQuery(
+            `create table "${table}"(a int); insert into "${table}" values(1),(2)`,
+          ),
+        );
+        expect(n).toStrictEqual(2);
+      } finally {
+        await tx.executeRaw(sqlQuery('ROLLBACK')).catch(() => undefined);
+        await tx.rollback().catch(() => undefined);
+      }
+      // The rollback took the table with it, which is the point of running the
+      // script on the transaction's own connection rather than a pooled one.
+      const gone = await ours.queryRaw(
+        sqlQuery(`select to_regclass('"${table}"') is null as v`),
+      );
+      expect(gone.rows[0][0]).toStrictEqual(true);
+    });
+
+    it('still raises an ordinary syntax error rather than retrying it away', async () => {
+      // 42601 is every syntax error, not just the multi-command one, and the
+      // retry is guarded on more than the code - a statement that merely looks
+      // like a script must not come back as a success.
+      await expect(
+        ours.executeRaw(sqlQuery(`select * form t_nope; select 1`)),
+      ).rejects.toMatchObject({ cause: { kind: 'postgres' } });
     });
 
     it('char[]: the reference hands back the unparsed literal', async () => {
