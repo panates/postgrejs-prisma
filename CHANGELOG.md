@@ -1,6 +1,14 @@
 ## Changelog
 
-### [v1.0.2](https://github.com/panates/postgrejs-prisma/compare/v1.0.1...v1.0.2) - 
+### [v1.0.4](https://github.com/panates/postgrejs-prisma/compare/v1.0.3...v1.0.4) - 
+
+### [v1.0.3](https://github.com/panates/postgrejs-prisma/compare/v1.0.2...v1.0.3) -  23 September 2026 
+
+#### 📖 Documentation Changes
+
+- docs: add the npm, CI and coverage badges @Eray Hanoğlu 
+
+### [v1.0.2](https://github.com/panates/postgrejs-prisma/compare/v1.0.1...v1.0.2) -  23 September 2026 
 
 #### 🚀 New Features
 

@@ -1,5 +1,10 @@
 # prisma-postgrejs
 
+[![NPM Version][npm-image]][npm-url]
+[![NPM Downloads][downloads-image]][downloads-url]
+[![CI Tests][ci-test-image]][ci-test-url]
+[![Test Coverage][coveralls-image]][coveralls-url]
+
 A [Prisma](https://www.prisma.io) driver adapter for
 [PostgreJS](https://github.com/panates/postgrejs). Swap it in where `@prisma/adapter-pg` goes and
 everything above it stays the same - your schema, your queries, your migrations. Queries get
@@ -237,3 +242,12 @@ when you switch.
 ## License
 
 BSD-3-Clause
+
+[npm-image]: https://img.shields.io/npm/v/prisma-postgrejs
+[npm-url]: https://npmjs.org/package/prisma-postgrejs
+[downloads-image]: https://img.shields.io/npm/dm/prisma-postgrejs.svg
+[downloads-url]: https://npmjs.org/package/prisma-postgrejs
+[ci-test-image]: https://github.com/panates/postgrejs-prisma/actions/workflows/test.yml/badge.svg
+[ci-test-url]: https://github.com/panates/postgrejs-prisma/actions/workflows/test.yml
+[coveralls-image]: https://img.shields.io/coveralls/panates/postgrejs-prisma/dev.svg
+[coveralls-url]: https://coveralls.io/r/panates/postgrejs-prisma
