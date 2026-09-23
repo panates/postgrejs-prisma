@@ -74,7 +74,14 @@ function parse(path) {
     else if (test[2] === '✓') passed.add(name);
   }
   const totals = text.match(/Tests:\s+(.*)/g)?.at(-1) ?? '';
-  return { passed, failed, totals, path };
+  // A run that died has no final summary, and jest's own crash line is the
+  // other half of the signal. Both are recorded so the comparison can refuse
+  // to answer rather than answer about the part that ran - see below.
+  const suites = (text.match(/^(?:PASS|FAIL) /gm) ?? []).length;
+  const died = /SIGSEGV|Command was killed|JavaScript heap out of memory/.test(
+    text,
+  );
+  return { passed, failed, totals, suites, died, path };
 }
 
 const [referencePath, oursPath] = process.argv.slice(2);
@@ -131,6 +138,36 @@ if (missing.length) {
     `\n  ${missing.length} test(s) the reference ran and this one did not:`,
   );
   for (const t of missing.slice(0, 10)) console.log(`    ${t}`);
+}
+
+/**
+ * A truncated run cannot be compared, and saying so is the whole point.
+ *
+ * The first version of this script did not check: a run that segfaulted after
+ * five suite files still had passing tests in it, still had no test it "lost"
+ * to the reference - because it never reached them - and was reported green.
+ * A false all-clear is worse than any finding this script can produce.
+ */
+for (const run of [reference, ours]) {
+  const label = run === ours ? 'prisma-postgrejs' : '@prisma/adapter-pg';
+  if (run.died || !run.totals) {
+    console.log(
+      `\n${RED}  The ${label} run did not finish - ${run.suites} suite file(s) ran` +
+        `${run.died ? ', and it was killed' : ' and it printed no summary'}.` +
+        ` Nothing below can be concluded from it.${RESET}`,
+    );
+    process.exit(2);
+  }
+}
+
+// Same again by count: a run can exit cleanly having skipped most of the
+// matrix, which is not a comparison either.
+if (ours.suites < reference.suites * 0.9) {
+  console.log(
+    `\n${RED}  prisma-postgrejs ran ${ours.suites} suite file(s) against the reference's` +
+      ` ${reference.suites}. Too few to compare.${RESET}`,
+  );
+  process.exit(2);
 }
 
 if (regressions.length) {

@@ -84,3 +84,16 @@ index ec319a0..49aefc2 100644
        .with(AdapterProviders.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_16_URI'))
        .with(AdapterProviders.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
        .with(AdapterProviders.JS_LIBSQL, () => requireEnvVariable('TEST_FUNCTIONAL_LIBSQL_FILE_URI'))
+diff --git a/packages/client/tests/functional/issues/10229/tests.ts b/packages/client/tests/functional/issues/10229/tests.ts
+index 71b1d04..591bb88 100644
+--- a/packages/client/tests/functional/issues/10229/tests.ts
++++ b/packages/client/tests/functional/issues/10229/tests.ts
+@@ -34,7 +34,7 @@ testMatrix.setupTestSuite(
+       `,
+     },
+     skipDriverAdapter: {
+-      from: ['js_neon', 'js_pg', 'js_pg_cockroachdb', 'js_planetscale', 'js_mariadb'],
++      from: ['js_neon', 'js_pg', 'js_pg_cockroachdb', 'js_planetscale', 'js_mariadb', 'js_postgrejs'],
+       reason: "driver adapters don't get their url from the schema, so it does not fail",
+     },
+     skip(when, { clientEngineExecutor }) {
