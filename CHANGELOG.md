@@ -1,6 +1,20 @@
 ## Changelog
 
-### [v1.0.1](https://github.com/panates/postgrejs-prisma/compare/v1.0.0...v1.0.1) - 
+### [v1.0.2](https://github.com/panates/postgrejs-prisma/compare/v1.0.1...v1.0.2) - 
+
+#### 🚀 New Features
+
+- feat: run a multi-statement $executeRaw as a script @Eray Hanoğlu 
+
+#### 📖 Documentation Changes
+
+- docs: lead with the result, and correct what the suite disproved @Eray Hanoğlu 
+
+#### 🧪 Changes to Test Assests
+
+- test: stop the suite comparison reporting a crashed run as clean @Eray Hanoğlu 
+
+### [v1.0.1](https://github.com/panates/postgrejs-prisma/compare/v1.0.0...v1.0.1) -  22 September 2026 
 
 #### 📖 Documentation Changes
 
