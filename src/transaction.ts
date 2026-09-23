@@ -46,7 +46,12 @@ export class PostgreJSTransaction
   protected readonly release: () => Promise<void>;
 
   constructor(connection: Connection, release: () => Promise<void>) {
-    super((sql, params) => connection.query(sql, { ...QUERY_OPTIONS, params }));
+    super(
+      (sql, params) => connection.query(sql, { ...QUERY_OPTIONS, params }),
+      // The transaction's own connection, so a script runs inside it rather
+      // than on some other pooled one.
+      sql => connection.execute(sql),
+    );
     this.connection = connection;
     this.release = release;
   }

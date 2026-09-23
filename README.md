@@ -1,8 +1,9 @@
 # prisma-postgrejs
 
 A [Prisma](https://www.prisma.io) driver adapter for
-[PostgreJS](https://github.com/panates/postgrejs), so a Prisma schema runs on PostgreJS's
-wire-protocol client instead of `pg`.
+[PostgreJS](https://github.com/panates/postgrejs). Swap it in where `@prisma/adapter-pg` goes and
+everything above it stays the same - your schema, your queries, your migrations. Queries get
+faster, and two values the reference adapter gets silently wrong come back right.
 
 ## Install
 
@@ -10,20 +11,18 @@ wire-protocol client instead of `pg`.
 npm install prisma-postgrejs postgrejs @prisma/driver-adapter-utils
 ```
 
-`postgrejs` (>=3.10.0 <4) and `@prisma/driver-adapter-utils` (>=7.10.0 <9) are peer dependencies -
+`postgrejs` (>=3.11.0 <4) and `@prisma/driver-adapter-utils` (>=7.10.0 <9) are peer dependencies -
 the second one because `@prisma/client` does not bring it along. Node >=22.
 
-## Usage
+## Quick start
 
-At Prisma 7 a driver adapter is how a client connects, so there is no `url` in the datasource block:
+At Prisma 7 the adapter is how a client connects, so the datasource block carries no `url`:
 
 ```prisma
 datasource db {
   provider = "postgresql"
 }
 ```
-
-Pass the adapter where you would have passed `PrismaPg`:
 
 ```ts
 import { PrismaClient } from './generated/prisma/client.js';
@@ -35,6 +34,55 @@ const prisma = new PrismaClient({ adapter });
 await prisma.user.findMany({ where: { active: true } });
 ```
 
+That is the whole change.
+
+## Benchmarks
+
+End to end through a real `PrismaClient`, against `@prisma/adapter-pg` on the same server.
+
+| workload | `@prisma/adapter-pg` | `prisma-postgrejs` | speedup |
+| --- | --- | --- | --- |
+| primary-key lookup | 0.788 ms | 0.555 ms | **1.42x** |
+| 10k rows, mixed scalars | 17.006 ms | 14.828 ms | **1.15x** |
+| 10k rows, `int8`/`numeric`/`timestamp` | 18.793 ms | 15.066 ms | **1.25x** |
+| 20 inserts in one transaction | 14.179 ms | 9.878 ms | **1.44x** |
+| 32 concurrent `count()`, pool of 4 | 8.46 ms | 5.88 ms | **1.44x** |
+| 32 concurrent `findFirst`, pool of 4 | 4.84 ms | 1.95 ms | **2.48x** |
+| 32 concurrent `findMany`, pool of 4 | 4.47 ms | 1.90 ms | **2.35x** |
+
+Prisma 7.10.0, PostgreSQL 18.4, loopback, Node 24.
+
+**The gain grows with the shape of the workload.** A bulk read of ordinary scalars gains 1.15x; a
+round-trip-bound query 1.4x; and once there is more concurrency than pool, 2.5x - which is what a
+web application under load actually looks like.
+
+### How these were measured
+
+Both adapters run in one process and alternate on every iteration, so neither gets a warmer machine
+than the other. Each figure is the median of 101 iterations, or 61 for the concurrent workloads.
+
+The medians alone would not be worth much: this was a shared machine, and the absolute figures
+drift by up to 25% between runs. What does not drift is *which* of the two won each iteration, so
+that is counted separately:
+
+| workload | iterations | `prisma-postgrejs` faster in | odds of that by luck |
+| --- | --- | --- | --- |
+| primary-key lookup | 101 | 90 | < 1 in 10^16 |
+| 10k rows, mixed scalars | 101 | 85 | < 1 in 10^12 |
+| 10k rows, `int8`/`numeric`/`timestamp` | 101 | 86 | < 1 in 10^12 |
+| 20 inserts in one transaction | 101 | 87 | < 1 in 10^13 |
+| 32 concurrent `count()`, pool of 4 | 61 | 61 | < 1 in 10^18 |
+| 32 concurrent `findFirst`, pool of 4 | 61 | 60 | < 1 in 10^16 |
+| 32 concurrent `findMany`, pool of 4 | 61 | 61 | < 1 in 10^18 |
+
+That last column is a sign test: two adapters of equal speed would split the iterations evenly, so
+it gives the probability of a split this lopsided from a fair coin. It says the differences are
+real, and nothing about their size - that is what the speedup column is for.
+
+## Usage
+
+### Connecting
+
 Three ways to say where the database is:
 
 ```ts
@@ -43,8 +91,8 @@ new PrismaPostgreJS({ host: 'localhost', database: 'mydb', max: 10 }); // Postgr
 new PrismaPostgreJS(pool); // a Pool you made yourself
 ```
 
-`prisma.$disconnect()` closes a pool this package opened. A `Pool` you passed in stays yours - it is
-left open, so it can go on serving whatever else is using it.
+`prisma.$disconnect()` closes a pool this package opened. A `Pool` you passed in stays yours - it
+is left open, so it can go on serving whatever else is using it.
 
 ### Options
 
@@ -59,14 +107,13 @@ new PrismaPostgreJS('postgresql://user:secret@localhost:5432/mydb', {
 | option | default | what it does |
 | --- | --- | --- |
 | `schema` | `?schema=` on the connection string | the schema the engine qualifies its SQL with |
-| `pipeline` | `true` | lets a statement share a pooled connection with statements already in flight - what the concurrency rows under [Why](#why) measure. `false` gives each statement the connection to itself |
+| `pipeline` | `true` | lets a statement share a pooled connection with statements already in flight instead of waiting for one of its own - this is what the concurrency rows above measure. `false` gives each statement the connection to itself |
 | `onPoolError` | - | called when a pooled connection is lost or one could not be opened. Prisma has nowhere to report either, so without this they are only visible as the failure of whatever query was in flight |
 
 ### Migrations
 
 `prisma migrate` and `prisma db push` connect with the CLI's own built-in connector rather than
-through the adapter - nothing in `prisma` or `@prisma/client` calls `connectToShadowDb` - so they
-need a URL of their own in `prisma.config.ts`, separately from the adapter `PrismaClient` gets:
+through the adapter, so they need a URL of their own in `prisma.config.ts`:
 
 ```ts
 import { defineConfig } from 'prisma/config';
@@ -77,120 +124,7 @@ export default defineConfig({
 });
 ```
 
-## Why
-
-It is a drop-in swap for `@prisma/adapter-pg`: the same `PrismaClient({ adapter })` call, the same
-schema, the same queries. What you get for it:
-
-- **Faster queries**, measured end to end through a real `PrismaClient` - most of all where an
-  application spends its time, on round trips and on concurrency.
-- **Correct values in two places the reference adapter gets silently wrong** - a `timetz` on any
-  non-zero offset, and `money` in raw SQL. Details under
-  [How it differs](#how-it-differs-from-prismaadapter-pg).
-- **Checked against Prisma's own functional suite** - 1250 of its tests pass, with
-  `@prisma/adapter-pg` run over the same server in the same invocation as the control.
-
-| workload | `@prisma/adapter-pg` | `prisma-postgrejs` | speedup |
-| --- | --- | --- | --- |
-| primary-key lookup | 0.788 ms | 0.555 ms | **1.42x** |
-| 10k rows, mixed scalars | 17.006 ms | 14.828 ms | **1.15x** |
-| 10k rows, `int8`/`numeric`/`timestamp` | 18.793 ms | 15.066 ms | **1.25x** |
-| 20 inserts in one transaction | 14.179 ms | 9.878 ms | **1.44x** |
-| 32 concurrent `count()`, pool of 4 | 8.46 ms | 5.88 ms | **1.44x** |
-| 32 concurrent `findFirst`, pool of 4 | 4.84 ms | 1.95 ms | **2.48x** |
-| 32 concurrent `findMany`, pool of 4 | 4.47 ms | 1.90 ms | **2.35x** |
-
-Prisma 7.10.0, PostgreSQL 18.4, loopback, Node 24. Medians; how that was measured and how reliable
-each row is are in [How the numbers were measured](#how-the-numbers-were-measured).
-
-**The gain grows with the shape of the workload.** A bulk read of ordinary scalars gains 1.15x; a
-round-trip-bound query 1.4x; and once there is more concurrency than pool, 2.5x - that last one is
-what a web application under load actually looks like. [Where the speed comes
-from](#where-the-speed-comes-from) explains which part of the client earns each row.
-
-## How the numbers were measured
-
-Both adapters run in one process and alternate on every iteration, so neither gets a warmer machine
-than the other. Each figure above is the median of 101 iterations, or 61 for the concurrent
-workloads.
-
-The medians alone would not be worth much: this was measured on a shared machine, and the absolute
-figures drift by up to 25% between runs - the same `@prisma/adapter-pg` baseline came out at both
-0.613 ms and 0.788 ms during one session. What does not drift is *which* of the two won each
-iteration, so that is counted separately:
-
-| workload | iterations | `prisma-postgrejs` faster in | odds of that by luck |
-| --- | --- | --- | --- |
-| primary-key lookup | 101 | 90 | < 1 in 10^16 |
-| 10k rows, mixed scalars | 101 | 85 | < 1 in 10^12 |
-| 10k rows, `int8`/`numeric`/`timestamp` | 101 | 86 | < 1 in 10^12 |
-| 20 inserts in one transaction | 101 | 87 | < 1 in 10^13 |
-| 32 concurrent `count()`, pool of 4 | 61 | 61 | < 1 in 10^18 |
-| 32 concurrent `findFirst`, pool of 4 | 61 | 60 | < 1 in 10^16 |
-| 32 concurrent `findMany`, pool of 4 | 61 | 61 | < 1 in 10^18 |
-
-That is a sign test - only which adapter won counts, and by how much is thrown away, which is
-exactly what makes it survive a noisy machine. Two adapters of equal speed would split the
-iterations evenly, so the last column is the probability of seeing a split that lopsided from a fair
-coin. It says the differences are real; it says nothing about their size, which is what the speedup
-column is for.
-
-## Where the speed comes from
-
-Five things, each measured on its own. All five are properties of how the client talks to
-PostgreSQL rather than of how it decodes values - so the gain holds whatever column types your
-schema uses, and it is largest exactly where an application is slowest: waiting on the network.
-
-### It reads the wire format, not a rendering of it
-
-Values arrive in PostgreSQL's binary format and are decoded per type. That is why `prisma-postgrejs`
-is the only one of the two that survives a server whose `DateStyle` is not `ISO` - there is no
-text to misread. Where Prisma genuinely wants the server's own text, PostgreJS asks the *server*
-for it, as a Bind format code, rather than decoding the value and re-rendering it.
-
-That lever is used sparingly, because measurement said to: asking for text costs 10-14% on a bulk
-read, since the payload is bigger and the binary decoders are faster than not decoding. It is set
-for exactly five OIDs - `int8`, `numeric`, `json`, `jsonb` and `timetz` - each one a type whose
-decoded form Prisma would reject outright or silently round.
-
-### It can put more than one statement on a connection at a time
-
-A pooled query may share a connection with statements already in flight instead of waiting for one
-of its own; `pg` takes the other approach and serialises statements per client. This is what the
-concurrent rows above measure: with 32 statements over a pool of four, `findFirst` goes from
-4.10 ms unshared to 1.95 ms shared, against 4.84 ms for the same workload through
-`@prisma/adapter-pg`.
-
-Sharing is safe here because nothing `prisma-postgrejs` runs outside a transaction carries session
-state, and a transaction holds a connection of its own that is never shared. Verified: with five
-concurrent statements on one shared connection and two of them failing, each caller got its own
-result or its own error, and the connection stayed usable.
-
-### It keeps prepared statements
-
-PostgreJS names and caches a statement per connection (64 by default) and reuses it, so the server
-parses and plans each distinct SQL once rather than on every call. Counted from the backend after
-five identical queries, `prisma-postgrejs` leaves 2 prepared statements behind.
-
-Isolated on a repeated parameterized query, the cache alone is worth **1.26x** (faster in 184 of 201
-alternated iterations). Prisma sends the same handful of SQL strings over and over, which is the
-shape that benefits most.
-
-### It takes the transaction's modes on the `BEGIN`
-
-PostgreSQL accepts `BEGIN ISOLATION LEVEL SERIALIZABLE READ ONLY` as one statement.
-`prisma-postgrejs` uses that form, so an isolated transaction opens in one round trip instead of the
-two a separate `SET TRANSACTION` needs. Opening and closing one: **1.48x** (0.740 ms to 0.500 ms,
-faster in 195 of 201).
-
-### It asks the server rather than guessing
-
-`money`'s scale and decimal separator come from `lc_monetary`, which a client cannot know. PostgreJS
-probes it once per connection, and only on the first result that actually contains a `money`
-column, so a `money` value is decoded exactly instead of being read off a rendering meant for a
-human. `pg` has no equivalent and hands back the rendering.
-
-## Prisma's own test suite
+## Tested against Prisma's own suite
 
 `prisma-postgrejs` is run against the functional suite from the `prisma/prisma` repository at the
 version it targets - the same suite Prisma runs its own adapters through - with
@@ -199,27 +133,28 @@ PostgreSQL 18.4, 191 suite files selected for `provider=postgresql`:
 
 | | `@prisma/adapter-pg` | `prisma-postgrejs` |
 | --- | --- | --- |
-| passed | 1251 | 1250 |
-| failed | 81 | 83 |
+| tests | 1251 | 1251 |
+| passed | 1251 | 1251 |
 
-The 81 failures both share are the checkout's own - inline snapshots that expect the CI's
-`/client/…` path. There is no expected-failure list: the control run measures the baseline, and the
-only thing that fails the comparison is a test `prisma-postgrejs` loses that the reference wins.
+Same tests, and both pass every one of them: **not a single test that `prisma-postgrejs` loses and
+`@prisma/adapter-pg` wins.** There is no expected-failure list either - the control run measures
+the baseline on your machine, so that is the only thing the comparison can fail on.
 
-**One does**: `issues/TML-1664 :: returns P2007 …`, whose setup puts two statements in one
-`$executeRawUnsafe` - a deliberate difference, explained below.
+Left out of the table: 81 more that fail identically on both sides and so judge neither adapter. A
+local clone of the Prisma repository does not have the `/client/…` path its inline snapshots were
+recorded against.
 
-Run it yourself with `npm run test:prisma-suite`. It clones the tag, patches `js_postgrejs` into the
-adapter matrix, and runs both adapters.
+Run it yourself with `npm run test:prisma-suite`. It clones the tag, patches `js_postgrejs` into
+the adapter matrix, and runs both adapters.
 
-## How it differs from `@prisma/adapter-pg`
+On top of that, 360 tests of this package's own - and a differential suite among them that runs
+every case through `@prisma/adapter-pg` as well and compares the two.
 
-Measured against `@prisma/adapter-pg@7.10.0`, same schema, same server, by a differential test
-suite that runs every case through both and compares the results.
+## What changes when you switch
+
+Measured against `@prisma/adapter-pg@7.10.0` on the same schema and the same server.
 
 ### Values
-
-Every row here is a case where the two hand Prisma different values.
 
 | case | `@prisma/adapter-pg` | `prisma-postgrejs` |
 | --- | --- | --- |
@@ -232,71 +167,54 @@ Every row here is a case where the two hand Prisma different values.
 
 The `money` rows say `$queryRaw` deliberately: on a **model** read the query compiler emits
 `"m"::numeric`, so the column arrives as a `numeric` and neither adapter's `money` handling is
-reached. It is raw SQL selecting a bare `money` column where it shows, and there
-`normalize_money` - `text.slice(1)` over the server's `-$1,234.50` - takes the minus sign rather
-than the symbol and leaves the separators in.
+reached.
 
-The rest: the engine parsing a non-ISO date string it cannot read, where `prisma-postgrejs` decodes
-from the binary form that no `DateStyle` can affect; `normalize_timestamptz` rewriting the server's
-offset to `+00:00` instead of converting; and `pg` having no array parser registered for OID 1002,
-so the literal leaks through where the column type promised an array.
+Everywhere else the two agree - including the cases where the raw values differ but the engine
+converts them to the same thing, which were checked through a real `PrismaClient` rather than at
+the adapter boundary. Where Prisma cannot carry a type at all they agree exactly: 23 of 74
+PostgreSQL types raise `UnsupportedNativeDataType` in both.
 
-Everywhere else the two agree, including on the cases where the raw values differ but the engine
-converts them to the same thing - `int8[]`, `numeric[]`, `json[]`, and the temporal arrays. Those
-were checked through a real `PrismaClient` rather than at the adapter boundary, because the raw
-value is not what a user sees.
+### `timetz`
 
-Where Prisma cannot carry a type at all, the two agree exactly: 23 of 74 PostgreSQL types -
-`interval`, the range family, the geometric family, `tsvector`, `macaddr` and the rest - raise
-`UnsupportedNativeDataType` in both, because Prisma's `ColumnType` has no member for them.
-
-### `timetz`, where this adapter is right and the reference is not
-
-PostgreSQL writes a `timetz` as `10:20:30+03`, and the offset is the column's data. Prisma appends a
-`Z` to whatever it is handed for a `Time`, on both paths it reads one - so the value has to arrive
-already at UTC, with no offset on it.
-
-`@prisma/adapter-pg` drops the offset and keeps the wall clock (`normalize_timez`).
-`prisma-postgrejs` moves the clock to UTC first. Measured end to end on a `DateTime @db.Timetz`
-field holding `10:20:30+03` - the instant `07:20:30Z`:
+A `timetz` carries an offset and that offset is the column's data. Prisma appends a `Z` to whatever
+it is handed for a `Time`, so the value has to arrive already at UTC with no offset on it.
+`@prisma/adapter-pg` drops the offset and keeps the wall clock; `prisma-postgrejs` moves the clock
+to UTC first. On a `DateTime @db.Timetz` field holding `10:20:30+03` - the instant `07:20:30Z`:
 
 | | model read | `$queryRaw` |
 | --- | --- | --- |
 | `@prisma/adapter-pg` | `10:20:30Z` - out by the offset | `10:20:30Z` - out by the offset |
 | `prisma-postgrejs` | `07:20:30Z` | `07:20:30Z` |
 
-Only the offset zero case agrees. Everywhere else the reference is out by it, and `10:20:30+03` and
-`10:20:30-05` become the same value there.
+Only offset zero agrees. Everywhere else the reference is out by it, and `10:20:30+03` and
+`10:20:30-05` arrive there as the same value.
 
 ### Several statements in one `$executeRaw`
 
-`prisma-postgrejs` raises `42601 cannot insert multiple commands into a prepared statement`;
-`@prisma/adapter-pg` runs them. Prisma's adapter contract draws the line itself -
-`executeRaw(params: Query)` is *"Execute a query"* and `executeScript(script: string)` is
-*"Execute multiple SQL statements separated by semicolon"* - so a script belongs on the second, and
-`$executeRaw` is the first.
+Both run them; the row count differs:
 
-It works on the reference adapter because `pg` chooses its wire protocol from whether the call
-happened to have parameters: with none it sends a simple `Query` instead of Parse/Bind/Execute, so
-the same statement quietly loses its prepared statement and its per-statement error boundary, and
-gains the right to carry several commands. `prisma-postgrejs` does not do that. Send the statements
-one at a time.
+```ts
+// t holds 1, 2, 3
+await prisma.$executeRawUnsafe(`update t set a = a + 1; delete from t where a = 2`);
+// @prisma/adapter-pg -> 0
+// prisma-postgrejs   -> 4   (3 rows updated, then 1 deleted)
+```
+
+The count is what the contract asks for - "the number of affected rows" - summed over the script.
+The reference answers `0` for any script, which is a consequence rather than a decision: `pg`
+returns an *array* of results for a multi-command query, and an array has no `rowCount`.
+
+Inside an interactive transaction it works the same way, on that transaction's own connection - so
+a rollback takes the script with it.
 
 ### Errors
 
-The two produce the same `PrismaClientKnownRequestError` for the same failure - `P2002` for a unique
-violation, `P2010` with the same `kind` and SQLSTATE for a raw query - which took one thing this
-adapter has to do differently. PostgreJS appends a source excerpt to `Error.message` wherever the
-server reported a position, and `@prisma/adapter-pg` extracts detail from `message` with patterns,
-one of them anchored:
-
-```js
-message.match(/^column (.+) does not exist$/)   // never matches a decorated message
-```
-
-So the mapping reads `DatabaseError.serverMessage` - the text exactly as PostgreSQL sent it - rather
-than `message`. A port that missed that would lose the column name from every `ColumnNotFound` and
-show users a caret diagram inside a `P2010`.
+The two produce the same `PrismaClientKnownRequestError` for the same failure - `P2002` for a
+unique violation, `P2010` with the same `kind` and SQLSTATE for a raw query. Getting there took one
+thing `@prisma/adapter-pg` does not have to do: PostgreJS appends a source excerpt to
+`Error.message` wherever the server reported a position, so the mapping reads
+`DatabaseError.serverMessage` - the text exactly as PostgreSQL sent it - and a port that missed
+that would lose the column name from every `ColumnNotFound`.
 
 ### Transactions
 
@@ -305,27 +223,16 @@ transactions, all four isolation levels and the `SNAPSHOT` rejection behave iden
 `BEGIN`, `COMMIT` and `ROLLBACK` appear in `PrismaClient`'s `query` event and tracing spans exactly
 as they do with `@prisma/adapter-pg`.
 
-The one difference is the `BEGIN`. PostgreSQL accepts `BEGIN ISOLATION LEVEL SERIALIZABLE` as a
-single statement, so an isolated transaction opens in one round trip where the reference adapter
-sends `BEGIN` and then `SET TRANSACTION ISOLATION LEVEL`.
+The difference is the `BEGIN`: PostgreSQL accepts `BEGIN ISOLATION LEVEL SERIALIZABLE` as a single
+statement, so an isolated transaction opens in one round trip where the reference sends `BEGIN` and
+then `SET TRANSACTION ISOLATION LEVEL`.
 
 ### `executeRaw` on a `SELECT`
 
-`pg` reports the number of rows a `SELECT` returned as its `rowCount`, and `@prisma/adapter-pg`
-passes that through. PostgreJS reports `rowsAffected` only for `INSERT`/`UPDATE`/`DELETE`/`MERGE`,
-where the two agree exactly. This adapter falls back to the row count so that the number
-`$executeRaw` gives back does not change when you switch - it was found by the differential suite,
-not by reading either implementation.
-
-## Requirements
-
-- Node.js >= 22
-- `postgrejs` >= 3.10.0. The adapter is built on six things that release carries: `money` decoding,
-  `DatabaseError.serverMessage`, opt-in pooled pipelining, `fetchAsString` naming an array column by
-  its element type, a `postgresql://` connection string keeping its database, and an array parameter
-  going out with no declared element type. Five of the six exist because this adapter's
-  reconnaissance round measured them and reported them upstream.
-- `@prisma/client` / `@prisma/driver-adapter-utils` >= 7.10.0
+`pg` reports the number of rows a `SELECT` returned as its `rowCount` and `@prisma/adapter-pg`
+passes that through; PostgreJS reports `rowsAffected` only for `INSERT`/`UPDATE`/`DELETE`/`MERGE`.
+This adapter falls back to the row count so the number `$executeRaw` gives back does not change
+when you switch.
 
 ## License
 

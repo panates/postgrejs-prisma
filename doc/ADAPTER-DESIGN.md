@@ -972,19 +972,24 @@ Tag 7.10.0, PostgreSQL 18.4, 191 of 263 suite files selected for `provider=postg
 
 | | `@prisma/adapter-pg` | `prisma-postgrejs` |
 | --- | --- | --- |
-| passed | 1251 | 1250 |
-| failed | 81 | 83 |
+| passed | 1251 | 1251 |
+| failed | 81 | 82 |
 
 The 81 shared failures are the checkout's own: inline snapshots that expect the CI's `/client/...`
 path, which no local clone has. They are identical in both runs, which is the entire reason the
 control run exists rather than a hand-written expected-failure list.
 
-**One test this adapter loses that the reference wins**: `issues/TML-1664 :: returns P2007 …`,
-whose setup runs a two-statement `$executeRawUnsafe`.
+**Nothing this adapter loses that the reference wins**, as of the last run. Two tests were on that
+list and both are gone:
 
-A second, `typed-sql/postgres-lists :: Decimal - input`, was in this list until `660aa54` shipped -
-an array parameter went out declared `float8[]`, so `numeric[] = $1` was `42883`. That one was a
-real client defect and is fixed.
+- `typed-sql/postgres-lists :: Decimal - input` - an array parameter went out declared `float8[]`,
+  so `numeric[] = $1` was `42883`. A real client defect, fixed upstream in `660aa54`.
+- `issues/TML-1664 :: returns P2007 …` - its setup runs a two-statement `$executeRawUnsafe`. The
+  adapter's own gap, fixed here; the reasoning is below and it took two passes to get right.
+
+The 82nd failure is `issues/10229`, which the reference never runs: it is skipped for all five of
+Prisma's own driver adapters, and `js_postgrejs` is not on that list. Not a regression by the
+comparison's definition, and not the adapter's behaviour either - the seventh patch hunk.
 
 **The remaining one is the reference adapter inheriting a `pg` quirk, and it was nearly reported as
 a PostgreJS defect.** The contract is explicit about which method takes what:
@@ -1000,8 +1005,54 @@ error boundary, and gains the right to carry several commands - decided by somet
 not think they were choosing. PostgreJS uses the extended protocol for `query()` and has `execute()`
 for scripts, which is the distinction the Prisma contract itself draws.
 
-So this one is **not fixed and should not be**: a multi-statement string through `executeRaw` raises
-`42601` here, and the way to run several statements is the method named for it.
+That reasoning is sound as far as it goes, and it is where this round stopped - "the way to run
+several statements is the method named for it". It is wrong, and what makes it wrong takes one
+grep: **`@prisma/client` never calls `executeScript`.** The string does not appear in
+`runtime/client.js`. So the contract's separation does not exist on any path a user can reach:
+`$executeRaw` is the only raw-exec API Prisma offers, and both a statement and a script arrive at
+`executeRaw`. "Use the other method" is advice about a method nobody can call.
+
+PostgreJS is still right on both counts - `query()` is the extended protocol, `execute()` is for
+scripts, and a `pg`-style switch decided by whether the caller happened to pass parameters is the
+wrong way to choose. The layer that sees both sides is the adapter, and choosing was its job all
+along.
+
+**How it chooses took two attempts, and the first was wrong in a way worth keeping.** It asked the
+server: send the statement as itself, and if PostgreSQL answers *cannot insert multiple commands
+into a prepared statement*, send it again through `execute()`. That is exact - no guessing - and it
+costs nothing until it fires, because Parse fails before Execute and nothing has run. It is also
+unusable inside a transaction, where the refusal aborts the transaction and the retry comes back
+`25P02 current transaction is aborted`: a worse error than the one it replaced.
+
+So the choice is made by reading the statement instead, before anything is sent: one pass, skipping
+`'...'`, `E'...'`, `"..."`, `$tag$...$tag$`, `--` and nested `/* */`.
+
+**The idea that this needed a splitter *from* the driver was wrong twice over - neither client has
+one.** `pg` does not split; it hands the whole string to the server in a simple `Query` message and
+lets the server parse it. PostgreJS's `execute()` does exactly the same (`_execute` →
+`sendQueryMessage` → `FrontendMessageCode.Query`) and counts the `CommandComplete`s that come back.
+Nobody splits SQL because nobody needs to: only a layer that must choose a protocol *before* sending
+needs the answer in advance.
+
+Checked against the server rather than against belief: 53 hand-written cases and 300 generated ones
+run through the extended protocol, with PostgreSQL's `42601` as ground truth. Full agreement, in
+both directions. The one place the scanner and the server part company is under
+`standard_conforming_strings = off`, on SQL that is malformed anyway (`select 'a\'; select 2`,
+which the server calls an unterminated string) - an error either way.
+
+**The scanner is no longer here.** It was written in this package, and the same reasoning that says
+the choice belongs to the adapter says the *answer* belongs to the driver: anything routing between
+`query()` and `execute()` needs it, and nothing about it is Prisma-shaped. It was offered upstream
+with the corpus and the measurements, and landed as `isMultiStatement()` in PostgreJS 3.11.0 - which
+is the peer floor now. `test/B-live/multi-statement.spec.ts` stayed: 34 of the cases run against a
+live server on every test run, because this adapter's routing is only as good as that answer.
+
+The count comes back as the sum over the script, which is what "the number of affected rows" asks
+for. `@prisma/adapter-pg` answers `0` for any script, because `pg` hands it an *array* of results
+and an array has no `rowCount`. Worth knowing that the contract agrees a script's count is not
+worth much: `executeScript` returns `Promise<void>`. It is just that nothing calls it - the only
+reference to it outside the adapters that implement it is
+`query-plan-executor/src/logic/adapter.ts:135`, which re-wraps it for the same interface.
 
 **Five more were real and are fixed**, which is the return on building this at all - nothing else in
 this round would have found them. `batching` counts `COMMIT` in the query log and `tracing` compares
@@ -1199,6 +1250,13 @@ Worth reading before trusting any single number in a future round.
   the adapter's by definition - there is nothing for a driver to fix, and a driver that "fixed" it
   would be worse for everyone not using Prisma. That test would have caught all three, and it takes
   one grep of `adapter-pg`'s source.
+- **And then the same mistake from the other side.** Having withdrawn the multi-statement report as
+  "nobody's defect", this round left it at that for a day - a user-facing difference, documented as
+  deliberate, with the justification "Prisma puts scripts on `executeScript`". One grep of
+  `runtime/client.js` shows the client never calls `executeScript`, so the justification was empty
+  and the work was the adapter's (§9). *Not the driver's* and *nobody's* are different conclusions,
+  and the first does not imply the second: when `pg` and PostgreJS both behave correctly and the two
+  adapters still differ, what is left is the adapter.
 - **The conversions were moved three times before landing where they started** (§2): a row pass, a
   `DataTypeMap`, deleted, then the `DataTypeMap` again. Only the second move was informative.
 - **`money` tested only at `12.34`**, which is the single shape `@prisma/adapter-pg`'s
@@ -1238,10 +1296,11 @@ And one that is not a measurement failure at all, kept here because it cost a da
   `src/type-map.ts` fills it. The option is not wrong - an exact decimal string is a reasonable
   thing for any caller to want, and it carries the column's scale, which a conversion here cannot -
   but this adapter does not need it.
-- **One divergence that is nobody's defect.** A multi-statement string through `executeRaw` raises
-  `42601`, where `@prisma/adapter-pg` accepts it because `pg` downgrades the protocol whenever a
-  call has no parameters (§9). Prisma's own contract puts scripts on `executeScript`. Documented,
-  not worked around, and costs one test in Prisma's suite.
+- **`issues/10229` fails for a reason that is not the adapter's**, and the seventh patch hunk is not
+  written. The test connects with an invalid URL from the schema and expects `P1001`; a driver
+  adapter takes its URL from the adapter, so nothing fails and `expect.assertions(2)` sees none.
+  Prisma lists all five of its own adapters in that test's `skipDriverAdapter`; `js_postgrejs` is
+  not on the list. Same class as the snapshot keys and the `conditionalError` table.
 - **A temporal text policy, if Prisma ever stops accepting a `Date`.** There is no way to ask this
   client for ISO temporal text independent of `DateStyle`, and building one here would mean
   rewriting decoded values. Nothing needs it today, so it is not filed - recorded so the next round
