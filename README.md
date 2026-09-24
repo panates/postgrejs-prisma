@@ -274,7 +274,7 @@ checkout and skips the clone and build.
 
 ## License
 
-BSD-3-Clause
+MIT
 
 [npm-image]: https://img.shields.io/npm/v/prisma-postgrejs
 [npm-url]: https://npmjs.org/package/prisma-postgrejs
