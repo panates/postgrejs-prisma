@@ -239,9 +239,42 @@ passes that through; PostgreJS reports `rowsAffected` only for `INSERT`/`UPDATE`
 This adapter falls back to the row count so the number `$executeRaw` gives back does not change
 when you switch.
 
+## Development
+
+The unit tests need nothing; the live and differential ones need a PostgreSQL at `127.0.0.1:5432`
+(`postgres`/`postgres`, database `postgres`), which `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD` and
+`PGDATABASE` override.
+
+```sh
+npm test                 # unit, live and differential tests
+npm run citest           # the same, with coverage
+npm run qc               # lint and circular dependency check
+npm run compile          # type check without emitting
+
+npm run test:prisma-suite   # Prisma's own functional suite, both adapters
+```
+
+The tests come in three kinds, and the split is deliberate:
+
+- `test/A-common` - no server. The OID-to-`ColumnType` table over every type, `mapArg` over every
+  `(scalarType, dbType, arity)` triple Prisma produces, and error mapping from synthetic
+  `DatabaseError`s.
+- `test/B-live` - against a real server. Value shapes as an explicit table, so a change in
+  PostgreJS's decoding names itself rather than surfacing as a puzzle somewhere downstream.
+- `test/C-differential` - the same calls through this adapter and through `@prisma/adapter-pg`,
+  deep-compared. It is what catches a difference nobody thought to assert: every divergence listed
+  under [What changes when you switch](#what-changes-when-you-switch) was found by running it.
+
+`npm run test:prisma-suite` is the fourth and the slowest. It clones `prisma/prisma` at the tag
+this package targets, patches `js_postgrejs` into the adapter matrix, and runs the whole functional
+suite twice - once with `@prisma/adapter-pg` as the control, once with this one - then reports only
+what differs. It takes about forty minutes and 4 GB of disk, nearly all of it the two suite runs,
+so it is a before-a-release tool rather than a per-push one. `SKIP_INSTALL=1` reuses an existing
+checkout and skips the clone and build.
+
 ## License
 
-BSD-3-Clause
+MIT
 
 [npm-image]: https://img.shields.io/npm/v/prisma-postgrejs
 [npm-url]: https://npmjs.org/package/prisma-postgrejs

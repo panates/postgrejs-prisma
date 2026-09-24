@@ -1,6 +1,12 @@
 ## Changelog
 
-### [v1.0.4](https://github.com/panates/postgrejs-prisma/compare/v1.0.3...v1.0.4) - 
+### [v1.0.5](https://github.com/panates/postgrejs-prisma/compare/v1.0.4...v1.0.5) - 
+
+#### 📖 Documentation Changes
+
+- docs: add a Development section @Eray Hanoğlu 
+
+### [v1.0.4](https://github.com/panates/postgrejs-prisma/compare/v1.0.3...v1.0.4) -  23 September 2026 
 
 ### [v1.0.3](https://github.com/panates/postgrejs-prisma/compare/v1.0.2...v1.0.3) -  23 September 2026 
 
