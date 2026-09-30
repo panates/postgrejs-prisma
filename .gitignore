@@ -4,6 +4,7 @@ node_modules
 .claude
 graphify-out
 /test-*
+/benchmark/generated
 
 # environment variables
 .env

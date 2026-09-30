@@ -1,0 +1,1172 @@
+{
+  "measuredAt": "2026-09-29T23:02:54.456Z",
+  "machine": {
+    "cpus": 18,
+    "loadAverage": [4.51, 8.2, 7.8]
+  },
+  "versions": {
+    "node": "v24.15.0",
+    "postgrejs": "3.12.1",
+    "pg": "8.23.0",
+    "@prisma/client": "7.10.0",
+    "@prisma/adapter-pg": "7.10.0",
+    "postgres": "18.6"
+  },
+  "control": "@prisma/adapter-pg",
+  "driver": "prisma-postgrejs",
+  "prepared": {
+    "queries": 4,
+    "@prisma/adapter-pg": 0,
+    "prisma-postgrejs": 4
+  },
+  "scenarios": [
+    {
+      "name": "primary-key lookup",
+      "group": "Read",
+      "note": "1 row of 6 columns",
+      "iters": 50,
+      "levels": {
+        "engine": {
+          "level": "engine",
+          "pairs": 101,
+          "wins": 96,
+          "p": 6.584107007480814e-23,
+          "pairedDiffMs": -0.041105820000000015,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 0.3263075,
+              "heldKb": 12804.8837890625,
+              "allocPerCallKb": 59.4440908203125,
+              "sustainedKb": 22299.1337890625,
+              "sustainedRssKb": 138752,
+              "wireKb": 0.2512763671875,
+              "wireOutKb": 0.299833984375,
+              "reclaimedKb": 53.65759999999999,
+              "idleHeldKb": 12787.37890625
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 0.2888525,
+              "heldKb": 12944.3291015625,
+              "allocPerCallKb": 63.0718212890625,
+              "sustainedKb": 22509.392578125,
+              "sustainedRssKb": 136768,
+              "wireKb": 0.0916962890625,
+              "wireOutKb": 0.055671875,
+              "reclaimedKb": 54.681599999999996,
+              "idleHeldKb": 12940.75390625
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 1000,
+          "heapWins": 0,
+          "heapP": 0.00390625,
+          "sustainedWins": 0
+        },
+        "adapter": {
+          "level": "adapter",
+          "pairs": 101,
+          "wins": 100,
+          "p": 8.04638123325431e-29,
+          "pairedDiffMs": -0.039290839999999994,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 0.29483084000000004,
+              "heldKb": 629.5048828125,
+              "allocPerCallKb": 20.796705078125,
+              "sustainedKb": 5068.8212890625,
+              "sustainedRssKb": 85072,
+              "wireKb": 0.2512763671875,
+              "wireOutKb": 0.299833984375,
+              "reclaimedKb": 15.36
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 0.25495249999999997,
+              "heldKb": 738.3876953125,
+              "allocPerCallKb": 25.11176953125,
+              "sustainedKb": 4958.123046875,
+              "sustainedRssKb": 85136,
+              "wireKb": 0.0916962890625,
+              "wireOutKb": 0.055671875,
+              "reclaimedKb": 22.220800000000004
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 1000,
+          "heapWins": 0,
+          "heapP": 0.00390625,
+          "sustainedWins": 7
+        }
+      }
+    },
+    {
+      "name": "10k rows, mixed scalars",
+      "group": "Read",
+      "note": "10000 rows of 6 columns: int, text, bool, float8, timestamp(3)",
+      "iters": 2,
+      "levels": {
+        "engine": {
+          "level": "engine",
+          "pairs": 101,
+          "wins": 101,
+          "p": 7.88860905221009e-31,
+          "pairedDiffMs": -7.8862295000000024,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 25.1654375,
+              "heldKb": 17429.9111328125,
+              "allocPerCallKb": 13566.675234375,
+              "sustainedKb": 175873.1171875,
+              "sustainedRssKb": 370896,
+              "wireKb": 768.3291015625,
+              "wireOutKb": 0.244228515625,
+              "reclaimedKb": 13769.728000000001,
+              "idleHeldKb": 14825.40234375
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 17.01925,
+              "heldKb": 15196.076171875,
+              "allocPerCallKb": 10976.04439453125,
+              "sustainedKb": 158571.873046875,
+              "sustainedRssKb": 342384,
+              "wireKb": 688.595703125,
+              "wireOutKb": 0.039150390625,
+              "reclaimedKb": 10543.104,
+              "idleHeldKb": 12555.01171875
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 7
+        },
+        "adapter": {
+          "level": "adapter",
+          "pairs": 101,
+          "wins": 101,
+          "p": 7.88860905221009e-31,
+          "pairedDiffMs": -1.074979,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 5.732604,
+              "heldKb": 6190.5869140625,
+              "allocPerCallKb": 6339.230458984375,
+              "sustainedKb": 40319.201171875,
+              "sustainedRssKb": 144912,
+              "wireKb": 768.3291015625,
+              "wireOutKb": 0.244228515625,
+              "reclaimedKb": 5579.776
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 4.7826045,
+              "heldKb": 3291.673828125,
+              "allocPerCallKb": 5149.89259765625,
+              "sustainedKb": 35545.951171875,
+              "sustainedRssKb": 136384,
+              "wireKb": 688.595703125,
+              "wireOutKb": 0.039150390625,
+              "reclaimedKb": 4545.536
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 9
+        }
+      }
+    },
+    {
+      "name": "10k rows, int8/numeric/timestamp",
+      "group": "Read",
+      "note": "10000 rows of the three types whose representations differ most",
+      "iters": 2,
+      "levels": {
+        "engine": {
+          "level": "engine",
+          "pairs": 101,
+          "wins": 98,
+          "p": 1.3552788123877944e-25,
+          "pairedDiffMs": -7.809562,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 27.5519375,
+              "heldKb": 18744.8798828125,
+              "allocPerCallKb": 17377.324541015623,
+              "sustainedKb": 174675.2802734375,
+              "sustainedRssKb": 380656,
+              "wireKb": 693.3837890625,
+              "wireOutKb": 0.187587890625,
+              "reclaimedKb": 18792.448,
+              "idleHeldKb": 14585.59765625
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 20.1461875,
+              "heldKb": 16649.392578125,
+              "allocPerCallKb": 15285.802890625,
+              "sustainedKb": 160939.302734375,
+              "sustainedRssKb": 349888,
+              "wireKb": 586.943359375,
+              "wireOutKb": 0.045009765625,
+              "reclaimedKb": 15197.184000000001,
+              "idleHeldKb": 12505.05859375
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 9
+        },
+        "adapter": {
+          "level": "adapter",
+          "pairs": 101,
+          "wins": 98,
+          "p": 1.3552788123877944e-25,
+          "pairedDiffMs": -0.5400209999999994,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 4.1870625,
+              "heldKb": 5831.8291015625,
+              "allocPerCallKb": 6307.136357421875,
+              "sustainedKb": 39476.326171875,
+              "sustainedRssKb": 143840,
+              "wireKb": 693.3837890625,
+              "wireOutKb": 0.187587890625,
+              "reclaimedKb": 5512.191999999999
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 3.606271,
+              "heldKb": 3087.841796875,
+              "allocPerCallKb": 4901.02876953125,
+              "sustainedKb": 19044.8125,
+              "sustainedRssKb": 106224,
+              "wireKb": 586.943359375,
+              "wireOutKb": 0.045009765625,
+              "reclaimedKb": 4403.2
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 9
+        }
+      }
+    },
+    {
+      "name": "point read",
+      "group": "Read",
+      "note": "1 row of 9 columns, mixed types",
+      "iters": 50,
+      "levels": {
+        "engine": {
+          "level": "engine",
+          "pairs": 101,
+          "wins": 99,
+          "p": 4.064211383698626e-27,
+          "pairedDiffMs": -0.09223250000000005,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 0.64140084,
+              "heldKb": 12840.8720703125,
+              "allocPerCallKb": 64.663677734375,
+              "sustainedKb": 22676.9033203125,
+              "sustainedRssKb": 139488,
+              "wireKb": 0.391708984375,
+              "wireOutKb": 0.353544921875,
+              "reclaimedKb": 53.145599999999995,
+              "idleHeldKb": 12822.95703125
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 0.55971582,
+              "heldKb": 12984.607421875,
+              "allocPerCallKb": 69.213384765625,
+              "sustainedKb": 23087.240234375,
+              "sustainedRssKb": 137328,
+              "wireKb": 0.1581396484375,
+              "wireOutKb": 0.071296875,
+              "reclaimedKb": 60.00639999999999,
+              "idleHeldKb": 12980.68359375
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 1000,
+          "heapWins": 0,
+          "heapP": 0.00390625,
+          "sustainedWins": 0
+        },
+        "adapter": {
+          "level": "adapter",
+          "pairs": 101,
+          "wins": 99,
+          "p": 4.064211383698626e-27,
+          "pairedDiffMs": -0.04199749999999999,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 0.2953125,
+              "heldKb": 650.9853515625,
+              "allocPerCallKb": 23.70790234375,
+              "sustainedKb": 4934.6015625,
+              "sustainedRssKb": 85392,
+              "wireKb": 0.391708984375,
+              "wireOutKb": 0.353544921875,
+              "reclaimedKb": 18.432
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 0.253025,
+              "heldKb": 764.361328125,
+              "allocPerCallKb": 27.320126953125,
+              "sustainedKb": 5063.1552734375,
+              "sustainedRssKb": 84864,
+              "wireKb": 0.1581396484375,
+              "wireOutKb": 0.071296875,
+              "reclaimedKb": 22.220800000000004
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 1000,
+          "heapWins": 0,
+          "heapP": 0.00390625,
+          "sustainedWins": 0
+        }
+      }
+    },
+    {
+      "name": "page of 200",
+      "group": "Read",
+      "note": "200 rows of 9 columns, mixed types",
+      "iters": 20,
+      "levels": {
+        "engine": {
+          "level": "engine",
+          "pairs": 101,
+          "wins": 92,
+          "p": 1.8214526731390185e-18,
+          "pairedDiffMs": -0.3359437500000002,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 1.8453812500000002,
+              "heldKb": 13099.75390625,
+              "allocPerCallKb": 581.631875,
+              "sustainedKb": 71553.9912109375,
+              "sustainedRssKb": 233328,
+              "wireKb": 30.97900390625,
+              "wireOutKb": 0.35090087890625,
+              "reclaimedKb": 446.208,
+              "idleHeldKb": 12960.83203125
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 1.50591875,
+              "heldKb": 13191.42578125,
+              "allocPerCallKb": 480.3458984375,
+              "sustainedKb": 67809.0927734375,
+              "sustainedRssKb": 221648,
+              "wireKb": 26.93662109375,
+              "wireOutKb": 0.06574462890625,
+              "reclaimedKb": 336.38400000000007,
+              "idleHeldKb": 13079.12890625
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 400,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 6
+        },
+        "adapter": {
+          "level": "adapter",
+          "pairs": 101,
+          "wins": 97,
+          "p": 3.356387792688263e-24,
+          "pairedDiffMs": -0.14850210000000003,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 0.6571021,
+              "heldKb": 849.5,
+              "allocPerCallKb": 216.56923583984374,
+              "sustainedKb": 9909.60546875,
+              "sustainedRssKb": 86512,
+              "wireKb": 30.97900390625,
+              "wireOutKb": 0.3508984375,
+              "reclaimedKb": 163.58400000000003
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 0.50870625,
+              "heldKb": 893.8203125,
+              "allocPerCallKb": 161.1574658203125,
+              "sustainedKb": 5363.677734375,
+              "sustainedRssKb": 81104,
+              "wireKb": 26.93662109375,
+              "wireOutKb": 0.0657421875,
+              "reclaimedKb": 138.24
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 400,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 9
+        }
+      }
+    },
+    {
+      "name": "uuid of 5k rows",
+      "group": "Read",
+      "note": "5000 rows of 1 value: sixteen bytes against thirty-six characters",
+      "iters": 10,
+      "levels": {
+        "engine": {
+          "level": "engine",
+          "pairs": 101,
+          "wins": 101,
+          "p": 7.88860905221009e-31,
+          "pairedDiffMs": -1.4657209,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 6.5908666,
+              "heldKb": 13898.169921875,
+              "allocPerCallKb": 3495.938271484375,
+              "sustainedKb": 119694.849609375,
+              "sustainedRssKb": 290448,
+              "wireKb": 267.552734375,
+              "wireOutKb": 0.1416455078125,
+              "reclaimedKb": 2934.272,
+              "idleHeldKb": 13274.51171875
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 5.1488084,
+              "heldKb": 13439.94921875,
+              "allocPerCallKb": 3379.06318359375,
+              "sustainedKb": 126730.28515625,
+              "sustainedRssKb": 301696,
+              "wireKb": 170.92578125,
+              "wireOutKb": 0.0391064453125,
+              "reclaimedKb": 2998.272,
+              "idleHeldKb": 12846.75390625
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 200,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 3
+        },
+        "adapter": {
+          "level": "adapter",
+          "pairs": 101,
+          "wins": 101,
+          "p": 7.88860905221009e-31,
+          "pairedDiffMs": -0.6324292,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 1.9555792,
+              "heldKb": 1952.482421875,
+              "allocPerCallKb": 1809.302802734375,
+              "sustainedKb": 12201.80859375,
+              "sustainedRssKb": 92800,
+              "wireKb": 267.552734375,
+              "wireOutKb": 0.1416455078125,
+              "reclaimedKb": 1448.4479999999999
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 1.3235166,
+              "heldKb": 1448.37109375,
+              "allocPerCallKb": 1590.96205078125,
+              "sustainedKb": 16736.40625,
+              "sustainedRssKb": 104144,
+              "wireKb": 170.92578125,
+              "wireOutKb": 0.0391064453125,
+              "reclaimedKb": 1574.4
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 200,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 4
+        }
+      }
+    },
+    {
+      "name": "float8 of 5k rows",
+      "group": "Read",
+      "note": "5000 rows of 1 value: eight bytes against seventeen significant digits",
+      "iters": 10,
+      "levels": {
+        "engine": {
+          "level": "engine",
+          "pairs": 101,
+          "wins": 101,
+          "p": 7.88860905221009e-31,
+          "pairedDiffMs": -1.6475916999999995,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 6.1313,
+              "heldKb": 13418.5,
+              "allocPerCallKb": 3453.31859375,
+              "sustainedKb": 102683.90625,
+              "sustainedRssKb": 274384,
+              "wireKb": 175.59765625,
+              "wireOutKb": 0.1357861328125,
+              "reclaimedKb": 3172.864,
+              "idleHeldKb": 12981.70703125
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 4.4199375000000005,
+              "heldKb": 13238.34375,
+              "allocPerCallKb": 3302.768046875,
+              "sustainedKb": 108734.19921875,
+              "sustainedRssKb": 280960,
+              "wireKb": 131.86328125,
+              "wireOutKb": 0.0391064453125,
+              "reclaimedKb": 3099.6480000000006,
+              "idleHeldKb": 12841.91015625
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 200,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 3
+        },
+        "adapter": {
+          "level": "adapter",
+          "pairs": 101,
+          "wins": 101,
+          "p": 7.88860905221009e-31,
+          "pairedDiffMs": -0.8174666000000004,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 1.879625,
+              "heldKb": 1389.18359375,
+              "allocPerCallKb": 1650.841015625,
+              "sustainedKb": 10912.09375,
+              "sustainedRssKb": 90928,
+              "wireKb": 175.59765625,
+              "wireOutKb": 0.1357861328125,
+              "reclaimedKb": 1447.4239999999998
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 1.0512542,
+              "heldKb": 1166.78515625,
+              "allocPerCallKb": 1349.04712890625,
+              "sustainedKb": 15083.60546875,
+              "sustainedRssKb": 102448,
+              "wireKb": 131.86328125,
+              "wireOutKb": 0.0391015625,
+              "reclaimedKb": 1383.4239999999998
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 200,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 3
+        }
+      }
+    },
+    {
+      "name": "float8[] of 5k in one row",
+      "group": "Read",
+      "note": "1 row holding 1 array of 5000 values - the same values as the row above",
+      "iters": 10,
+      "levels": {
+        "engine": {
+          "level": "engine",
+          "pairs": 101,
+          "wins": 101,
+          "p": 7.88860905221009e-31,
+          "pairedDiffMs": -3.9955125,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 5.8189208,
+              "heldKb": 12893.87890625,
+              "allocPerCallKb": 3673.9610546875,
+              "sustainedKb": 44137.97265625,
+              "sustainedRssKb": 172976,
+              "wireKb": 88.828125,
+              "wireOutKb": 0.2090283203125,
+              "reclaimedKb": 3530.2399999999984,
+              "idleHeldKb": 12793.70703125
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 1.8652625,
+              "heldKb": 13011.44140625,
+              "allocPerCallKb": 984.48109375,
+              "sustainedKb": 34903.4921875,
+              "sustainedRssKb": 154240,
+              "wireKb": 58.65625,
+              "wireOutKb": 0.055703125,
+              "reclaimedKb": 848.3839999999999,
+              "idleHeldKb": 12950.07421875
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 200,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 9
+        },
+        "adapter": {
+          "level": "adapter",
+          "pairs": 101,
+          "wins": 101,
+          "p": 7.88860905221009e-31,
+          "pairedDiffMs": -2.136175,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 2.7445208,
+              "heldKb": 718.5859375,
+              "allocPerCallKb": 2568.10353515625,
+              "sustainedKb": 10193.01953125,
+              "sustainedRssKb": 89104,
+              "wireKb": 88.828125,
+              "wireOutKb": 0.2090283203125,
+              "reclaimedKb": 2669.056000000001
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 0.5976916,
+              "heldKb": 794.6875,
+              "allocPerCallKb": 234.31345703125,
+              "sustainedKb": 6748.05859375,
+              "sustainedRssKb": 82320,
+              "wireKb": 58.65625,
+              "wireOutKb": 0.055703125,
+              "reclaimedKb": 133.63200000000003
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 200,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 9
+        }
+      }
+    },
+    {
+      "name": "int4[] of 100k in one row",
+      "group": "Read",
+      "note": "1 row holding 1 array of 100000 values that use the whole type",
+      "iters": 3,
+      "levels": {
+        "engine": {
+          "level": "engine",
+          "pairs": 61,
+          "wins": 61,
+          "p": 8.673617379884035e-19,
+          "pairedDiffMs": -44.71694433333333,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 64.12547233333333,
+              "heldKb": 14367.240234375,
+              "allocPerCallKb": 27905.786689453125,
+              "sustainedKb": 96518.357421875,
+              "sustainedRssKb": 303008,
+              "wireKb": 1022.189453125,
+              "wireOutKb": 0.207119140625,
+              "reclaimedKb": 46525.44,
+              "idleHeldKb": 13548.04296875
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 19.5615,
+              "heldKb": 13641.09765625,
+              "allocPerCallKb": 13704.4496875,
+              "sustainedKb": 133480.732421875,
+              "sustainedRssKb": 296160,
+              "wireKb": 781.3125,
+              "wireOutKb": 0.055751953125,
+              "reclaimedKb": 12838.912,
+              "idleHeldKb": 12830.87109375
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 1
+        },
+        "adapter": {
+          "level": "adapter",
+          "pairs": 61,
+          "wins": 61,
+          "p": 8.673617379884035e-19,
+          "pairedDiffMs": -34.40949966666667,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 41.839930333333335,
+              "heldKb": 2392.611328125,
+              "allocPerCallKb": 25887.88125,
+              "sustainedKb": 63912.6806640625,
+              "sustainedRssKb": 179392,
+              "wireKb": 1022.189453125,
+              "wireOutKb": 0.207119140625,
+              "reclaimedKb": 33474.56
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 8.477652666666666,
+              "heldKb": 1495.2734375,
+              "allocPerCallKb": 2272.86623046875,
+              "sustainedKb": 16508.4794921875,
+              "sustainedRssKb": 98992,
+              "wireKb": 781.3125,
+              "wireOutKb": 0.055751953125,
+              "reclaimedKb": 825.344
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 9
+        }
+      }
+    },
+    {
+      "name": "bytea of 4MB",
+      "group": "Read",
+      "note": "1 row holding 1 value of 4 MB",
+      "iters": 3,
+      "levels": {
+        "engine": {
+          "level": "engine",
+          "pairs": 61,
+          "wins": 61,
+          "p": 8.673617379884035e-19,
+          "pairedDiffMs": -59.48266666666667,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 108.82745833333333,
+              "heldKb": 15317.91015625,
+              "allocPerCallKb": 70813.43221679688,
+              "sustainedKb": 129278.2373046875,
+              "sustainedRssKb": 214544,
+              "wireKb": 8192.0966796875,
+              "wireOutKb": 0.20712890625,
+              "reclaimedKb": 346.1119999999984,
+              "idleHeldKb": 11183.1025390625
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 50.756485999999995,
+              "heldKb": 11366.9423828125,
+              "allocPerCallKb": 22090.19580078125,
+              "sustainedKb": 55587.0595703125,
+              "sustainedRssKb": 178464,
+              "wireKb": 4096.04296875,
+              "wireOutKb": 0.055751953125,
+              "reclaimedKb": 267.26400000000046,
+              "idleHeldKb": 7246.7197265625
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 9
+        },
+        "adapter": {
+          "level": "adapter",
+          "pairs": 61,
+          "wins": 61,
+          "p": 8.673617379884035e-19,
+          "pairedDiffMs": -59.137708333333336,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 106.753875,
+              "heldKb": 7737.0546875,
+              "allocPerCallKb": 53207.7781640625,
+              "sustainedKb": 85960.51953125,
+              "sustainedRssKb": 172880,
+              "wireKb": 8192.0966796875,
+              "wireOutKb": 0.20712890625,
+              "reclaimedKb": 300.0320000000013
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 46.45466666666667,
+              "heldKb": 3717.0458984375,
+              "allocPerCallKb": 4299.94302734375,
+              "sustainedKb": 12295.6494140625,
+              "sustainedRssKb": 105328,
+              "wireKb": 4096.04296875,
+              "wireOutKb": 0.055751953125,
+              "reclaimedKb": 207.87199999999947
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 9
+        }
+      }
+    },
+    {
+      "name": "20 inserts in one transaction",
+      "group": "Write",
+      "note": "1 interactive transaction holding 20 single-row inserts",
+      "iters": 1,
+      "levels": {
+        "engine": {
+          "level": "engine",
+          "pairs": 101,
+          "wins": 96,
+          "p": 6.584107007480814e-23,
+          "pairedDiffMs": -2.7547510000000006,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 16.008041,
+              "heldKb": 12775.3291015625,
+              "allocPerCallKb": 1081.5752734375,
+              "sustainedKb": 34192.326171875,
+              "sustainedRssKb": 152272,
+              "wireKb": 2.5341796875,
+              "wireOutKb": 3.518642578125,
+              "reclaimedKb": 808.9600000000002,
+              "idleHeldKb": 12757.61328125
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 14.091,
+              "heldKb": 12909.146484375,
+              "allocPerCallKb": 1144.6658984375,
+              "sustainedKb": 31864.8212890625,
+              "sustainedRssKb": 149392,
+              "wireKb": 1.1474609375,
+              "wireOutKb": 1.070400390625,
+              "reclaimedKb": 1000.4480000000002,
+              "idleHeldKb": 12907.42578125
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 0,
+          "heapP": 0.00390625,
+          "sustainedWins": 8
+        },
+        "adapter": {
+          "level": "adapter",
+          "pairs": 101,
+          "wins": 99,
+          "p": 4.064211383698626e-27,
+          "pairedDiffMs": -0.7223329999999999,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 5.89325,
+              "heldKb": 579.1533203125,
+              "allocPerCallKb": 285.0072265625,
+              "sustainedKb": 10001.482421875,
+              "sustainedRssKb": 88304,
+              "wireKb": 2.5341796875,
+              "wireOutKb": 3.518642578125,
+              "reclaimedKb": 192.51199999999997
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 5.185334,
+              "heldKb": 704.259765625,
+              "allocPerCallKb": 353.87662109375,
+              "sustainedKb": 4887.4140625,
+              "sustainedRssKb": 80736,
+              "wireKb": 1.1474609375,
+              "wireOutKb": 1.070400390625,
+              "reclaimedKb": 319.48800000000006
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 0,
+          "heapP": 0.00390625,
+          "sustainedWins": 9
+        }
+      }
+    },
+    {
+      "name": "32 concurrent count(), pool of 4",
+      "group": "Concurrency",
+      "note": "32 calls at once over a pool of 4",
+      "iters": 1,
+      "levels": {
+        "engine": {
+          "level": "engine",
+          "pairs": 61,
+          "wins": 60,
+          "p": 5.3776427755280884e-17,
+          "pairedDiffMs": -6.518167000000002,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 16.785875,
+              "heldKb": 12697.8662109375,
+              "allocPerCallKb": 1327.048232421875,
+              "sustainedKb": 31526.5595703125,
+              "sustainedRssKb": 152576,
+              "wireKb": 2.59375,
+              "wireOutKb": 5.312587890625,
+              "reclaimedKb": 1133.5680000000002,
+              "idleHeldKb": 12699.47265625
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 10.173042,
+              "heldKb": 12817.9970703125,
+              "allocPerCallKb": 1362.397900390625,
+              "sustainedKb": 32750.6376953125,
+              "sustainedRssKb": 150992,
+              "wireKb": 1.28125,
+              "wireOutKb": 1.250087890625,
+              "reclaimedKb": 1247.2320000000002,
+              "idleHeldKb": 12834.22265625
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 0,
+          "heapP": 0.00390625,
+          "sustainedWins": 0
+        },
+        "adapter": {
+          "level": "adapter",
+          "pairs": 61,
+          "wins": 59,
+          "p": 1.6410484082740564e-15,
+          "pairedDiffMs": -1.4315420000000003,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 6.475542,
+              "heldKb": 714.6982421875,
+              "allocPerCallKb": 460.94560546875,
+              "sustainedKb": 8404.580078125,
+              "sustainedRssKb": 89392,
+              "wireKb": 2.59375,
+              "wireOutKb": 5.312587890625,
+              "reclaimedKb": 378.88
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 5.073375,
+              "heldKb": 819.1650390625,
+              "allocPerCallKb": 511.92611328125,
+              "sustainedKb": 8652.4384765625,
+              "sustainedRssKb": 86864,
+              "wireKb": 1.28125,
+              "wireOutKb": 1.250087890625,
+              "reclaimedKb": 439.296
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 0,
+          "heapP": 0.00390625,
+          "sustainedWins": 0
+        }
+      }
+    },
+    {
+      "name": "32 concurrent findFirst, pool of 4",
+      "group": "Concurrency",
+      "note": "32 calls at once over a pool of 4",
+      "iters": 1,
+      "levels": {
+        "engine": {
+          "level": "engine",
+          "pairs": 61,
+          "wins": 61,
+          "p": 8.673617379884035e-19,
+          "pairedDiffMs": -7.445876,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 11.90825,
+              "heldKb": 13034.2783203125,
+              "allocPerCallKb": 1661.218193359375,
+              "sustainedKb": 34415.9072265625,
+              "sustainedRssKb": 156688,
+              "wireKb": 8.1177734375,
+              "wireOutKb": 9.30408203125,
+              "reclaimedKb": 1483.7759999999998,
+              "idleHeldKb": 13027.57421875
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 4.453542,
+              "heldKb": 13193.587890625,
+              "allocPerCallKb": 1609.61859375,
+              "sustainedKb": 34912.83203125,
+              "sustainedRssKb": 155920,
+              "wireKb": 2.975283203125,
+              "wireOutKb": 1.781328125,
+              "reclaimedKb": 1508.3519999999999,
+              "idleHeldKb": 13200.13671875
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 0
+        },
+        "adapter": {
+          "level": "adapter",
+          "pairs": 61,
+          "wins": 61,
+          "p": 8.673617379884035e-19,
+          "pairedDiffMs": -2.1397500000000003,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 2.906292,
+              "heldKb": 823.5087890625,
+              "allocPerCallKb": 529.04607421875,
+              "sustainedKb": 8482.16796875,
+              "sustainedRssKb": 91120,
+              "wireKb": 8.1177734375,
+              "wireOutKb": 9.304072265625,
+              "reclaimedKb": 440.32
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 0.761166,
+              "heldKb": 942.93359375,
+              "allocPerCallKb": 513.980615234375,
+              "sustainedKb": 8950.8154296875,
+              "sustainedRssKb": 89104,
+              "wireKb": 2.975283203125,
+              "wireOutKb": 1.781328125,
+              "reclaimedKb": 482.3039999999999
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 8,
+          "heapP": 0.039062500000000014,
+          "sustainedWins": 0
+        }
+      }
+    },
+    {
+      "name": "32 concurrent findMany, pool of 4",
+      "group": "Concurrency",
+      "note": "32 calls at once over a pool of 4, 1 row each",
+      "iters": 1,
+      "levels": {
+        "engine": {
+          "level": "engine",
+          "pairs": 61,
+          "wins": 61,
+          "p": 8.673617379884035e-19,
+          "pairedDiffMs": -5.853666,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 10.062208,
+              "heldKb": 12878.3115234375,
+              "allocPerCallKb": 1356.220703125,
+              "sustainedKb": 31439.9208984375,
+              "sustainedRssKb": 152688,
+              "wireKb": 7.84375,
+              "wireOutKb": 9.375087890625,
+              "reclaimedKb": 1141.76,
+              "idleHeldKb": 12872.93359375
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 4.266167,
+              "heldKb": 13016.2958984375,
+              "allocPerCallKb": 1320.6521484375,
+              "sustainedKb": 32118.5830078125,
+              "sustainedRssKb": 151904,
+              "wireKb": 2.84375,
+              "wireOutKb": 1.468828125,
+              "reclaimedKb": 1223.68,
+              "idleHeldKb": 13009.14453125
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 9,
+          "heapP": 0.00390625,
+          "sustainedWins": 0
+        },
+        "adapter": {
+          "level": "adapter",
+          "pairs": 61,
+          "wins": 61,
+          "p": 8.673617379884035e-19,
+          "pairedDiffMs": -1.709582,
+          "rows": [
+            {
+              "name": "@prisma/adapter-pg",
+              "ms": 2.664875,
+              "heldKb": 792.9873046875,
+              "allocPerCallKb": 520.302958984375,
+              "sustainedKb": 8445.86328125,
+              "sustainedRssKb": 91152,
+              "wireKb": 7.84375,
+              "wireOutKb": 9.375078125,
+              "reclaimedKb": 468.99200000000013
+            },
+            {
+              "name": "prisma-postgrejs",
+              "ms": 0.911917,
+              "heldKb": 896.9404296875,
+              "allocPerCallKb": 513.50326171875,
+              "sustainedKb": 8762.201171875,
+              "sustainedRssKb": 88416,
+              "wireKb": 2.84375,
+              "wireOutKb": 1.468828125,
+              "reclaimedKb": 449.53600000000006
+            }
+          ],
+          "heapPairs": 9,
+          "memoryCalls": 100,
+          "heapWins": 8,
+          "heapP": 0.039062500000000014,
+          "sustainedWins": 0
+        }
+      }
+    }
+  ]
+}

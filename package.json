@@ -35,6 +35,8 @@
   "scripts": {
     "test": "mocha",
     "test:prisma-suite": "bash scripts/run-prisma-suite.sh",
+    "bench": "node benchmark/bench.mjs",
+    "bench:report": "node benchmark/render-report.mjs",
     "precitest": "rimraf coverage",
     "citest": "c8 mocha"
   },

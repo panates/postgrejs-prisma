@@ -7,3 +7,4 @@
 /.github
 **/*.md
 /test-*
+/benchmark/generated

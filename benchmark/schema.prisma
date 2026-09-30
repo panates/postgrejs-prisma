@@ -1,0 +1,81 @@
+// The schema the benchmark measures against.
+//
+// Written as a Prisma schema and pushed as one, rather than hand-written SQL,
+// because the column types Prisma chooses are the hot path: `DateTime` is
+// `timestamp(3)`, `Decimal` is `decimal(65,30)` unless told otherwise, and a
+// benchmark against hand-picked types would measure a schema nobody has.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// 10k rows of ordinary scalars - the bulk-read workload.
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  active    Boolean  @default(true)
+  score     Float
+  createdAt DateTime @default(now())
+}
+
+/// 10k rows of the three types whose representations differ most.
+model Wide {
+  id     Int      @id @default(autoincrement())
+  big    BigInt
+  amount Decimal  @db.Decimal(20, 4)
+  at     DateTime
+}
+
+/// The write target. Truncated before each transaction scenario.
+model Wr {
+  id Int    @id @default(autoincrement())
+  v  String
+  n  Int
+}
+
+/// Nine columns of mixed types - the point read and the page.
+model Row {
+  id     Int      @id @default(autoincrement())
+  name   String
+  email  String
+  active Boolean
+  score  Float
+  amount Decimal  @db.Decimal(12, 2)
+  big    BigInt
+  at     DateTime
+  note   String?
+}
+
+/// One `float8` per row - the spread half of the two-shape pair.
+model Num {
+  id Int   @id @default(autoincrement())
+  v  Float
+}
+
+/// One `uuid` per row: sixteen bytes against thirty-six characters.
+model Ident {
+  id Int    @id @default(autoincrement())
+  u  String @db.Uuid
+}
+
+/// One row holding whole payloads - the packed half of the pair, and the
+/// large-value reads. Kept to a single row on purpose.
+model Payload {
+  id     Int     @id
+  blob   Bytes
+  ints   Int[]
+  floats Float[]
+}
+
+/// The write target for the payload writes.
+model PayloadW {
+  id   Int    @id @default(autoincrement())
+  blob Bytes?
+  ints Int[]
+}
