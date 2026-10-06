@@ -1,3 +1,28 @@
+# Changelog
+
+<!-- rman:documented-up-to 806c510e799ca55dff5b4ba668ae0658d31521f0 -->
+
+## v1.1.0 (2026-10-06)
+
+### ✨ Features
+
+- **benchmark:** measure both adapters at two levels, and generate the report (8d473b6)
+
+### 📚 Documentation
+
+- correct the claim that `BEGIN` reaches Prisma's query event (357e9a8)
+
+### 🤖 Continuous Integration
+
+- finish the rman 2.x migration, and repair a CI that could not pass (2a741e6)
+
+### 🧹 Chores
+
+- move the toolchain to rman, and raise the postgrejs floor (914fdd9)
+- update dependencies to latest versions (0e55d4d)
+
+---
+
 ## Changelog
 
 ### [v1.0.5](https://github.com/panates/postgrejs-prisma/compare/v1.0.4...v1.0.5) - 
