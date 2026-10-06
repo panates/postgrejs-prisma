@@ -37,7 +37,7 @@
     "test:prisma-suite": "bash scripts/run-prisma-suite.sh",
     "bench": "node benchmark/bench.mjs",
     "bench:report": "node benchmark/render-report.mjs",
-    "precitest": "rimraf coverage",
+    "precitest": "rman clean",
     "citest": "c8 mocha"
   },
   "type": "module",
