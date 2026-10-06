@@ -22,6 +22,14 @@ permissions:
 
 jobs:
   qc:
-    uses: panates/github-actions/.github/workflows/node-qc.yaml@v1
-    secrets:
-      PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+    uses: panates/github-actions/.github/workflows/node-qc.yaml@v3
+    with:
+      # The default is `npm run qc`, and that script no longer exists: the rman migration moved
+      # lint and the circular-dependency check out of package.json and into commands the preset
+      # contributes. Left at the default this job failed on a missing script.
+      #
+      # These are the same three checks `test.yml` runs, minus the database - a feature branch gets
+      # the cheap half on every push and the full matrix once it reaches dev.
+      qc_script: 'rman lint && rman check && rman compile'
+    # PERSONAL_ACCESS_TOKEN is not passed: the called workflow wants it only for
+    # npm.pkg.github.com, and nothing here is hosted there.

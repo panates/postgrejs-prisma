@@ -125,7 +125,7 @@ for (const line of text.split("\n")) {
 # as well and make the comparison measure the wrong thing.
 
 say "Building and linking prisma-postgrejs"
-(cd "$REPO_DIR" && npm run build >/dev/null)
+(cd "$REPO_DIR" && rman build >/dev/null)
 rm -rf "$CHECKOUT/node_modules/prisma-postgrejs" "$CHECKOUT/node_modules/postgrejs"
 cp -R "$REPO_DIR/build" "$CHECKOUT/node_modules/prisma-postgrejs"
 node -e '

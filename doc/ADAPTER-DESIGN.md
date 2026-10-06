@@ -608,8 +608,10 @@ if (tx.transaction.options.usePhantomQuery) {
 > acted on and shipped, and Prisma's own functional suite rejected it five tests at a time -
 > `batching` asserts the query log, `tracing` asserts the span tree, and both count the word
 > `COMMIT`. Under `usePhantomQuery: true` the engine logs the boundary as
-> `-- Implicit "COMMIT" query via underlying driver`, so `BEGIN`, `COMMIT` and `ROLLBACK` are not
-> in the query event or the `db.query.text` attribute that a user reads to see their transaction.
+> `-- Implicit "COMMIT" query via underlying driver`, so `COMMIT` and `ROLLBACK` are not in the
+> query event or the `db.query.text` attribute that a user reads to see their transaction. (`BEGIN`
+> is not there under either setting, and nor is the reference adapter's - measured. The engine logs
+> what it issues, and the `BEGIN` belongs to the adapter.)
 >
 > It is also not cheaper, which was the argument for it. With `false` the engine sends `COMMIT`
 > through `executeRaw` and then calls `commit()`, which only releases the connection: one round trip

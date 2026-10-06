@@ -18,9 +18,11 @@ import { PostgreJSQueryable, QUERY_OPTIONS } from './queryable.js';
  * better option - PostgreJS's own `connection.commit()` doing the work - and
  * it is the wrong one:
  *
- * - The literal words `BEGIN`, `COMMIT` and `ROLLBACK` disappear from
- *   `PrismaClient`'s `query` event and from its `db.query.text` tracing
- *   attribute, which is what a user reads to see their transaction.
+ * - The literal words `COMMIT` and `ROLLBACK` disappear from `PrismaClient`'s
+ *   `query` event and from its `db.query.text` tracing attribute, which is
+ *   what a user reads to see their transaction. (`BEGIN` never appears there
+ *   under either setting, and nor does the reference adapter's: the engine
+ *   logs the statements it issues, and the `BEGIN` is the adapter's own.)
  * - It is not cheaper. With `false` the engine sends `COMMIT` through
  *   `executeRaw` and then calls `commit()`, which only has to release the
  *   connection - one round trip either way.
