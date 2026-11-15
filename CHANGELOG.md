@@ -1,6 +1,22 @@
 # Changelog
 
-<!-- rman:documented-up-to 806c510e799ca55dff5b4ba668ae0658d31521f0 -->
+<!-- rman:documented-up-to 1f6f13b69fc743be9be7d5c7e72b44804e9eccfc -->
+
+## v1.1.1 (2026-11-15)
+
+### 🧹 Chores
+
+- remove `dpdm` dependency and mark certain packages as peer dependencies in lockfile (6e8c855)
+- remove auto-changelog and associated template files (574b3ff)
+- sync lockfile (7c987ed)
+- **deps:** upgrade dependencies (53d7ebf)
+- normalize repository.url for rman-preset 2.x package.json check (0027fe9)
+
+### 💬 General Changes
+
+- Merge remote-tracking branch 'origin/dev' into dev (bab7b65)
+
+---
 
 ## v1.1.0 (2026-10-06)
 
