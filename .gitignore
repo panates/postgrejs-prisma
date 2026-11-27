@@ -28,6 +28,13 @@ logs
 .claude/local/
 graphify-out
 
+# graphify installs its git hooks into .husky/, where git runs them in this clone; they are not
+# the repository's, so they stay out of git
+.husky/post-checkout
+.husky/post-commit
+.husky/post-merge
+.husky/post-rewrite
+
 # IDEs and editors
 /.idea
 .project
