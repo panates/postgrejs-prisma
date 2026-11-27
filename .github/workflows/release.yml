@@ -93,9 +93,3 @@ jobs:
     permissions:
       id-token: write
       contents: write
-    secrets:
-      # PERSONAL_ACCESS_TOKEN is gone: no dependency here carries a private scope and there is no
-      # .npmrc, so the token had nothing to authenticate. The checkout and `rman version --push` use
-      # the job's own GITHUB_TOKEN, which is also why a release does not trigger a second run of
-      # itself.
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
