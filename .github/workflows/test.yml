@@ -7,10 +7,10 @@ on:
   # Can be run manually
   workflow_dispatch:
 
-  # on git push
+  # Every push but to main, which gets its tests from release.yml
   push:
-    branches:
-      - dev
+    branches-ignore:
+      - main
 
 # This workflow only ever reads the repository: it checks out, installs and
 # runs tests. Set explicitly rather than left to the repository default,
@@ -67,21 +67,20 @@ jobs:
           rman-version: '2'
           install: 'ci'
 
+      # pnpm has no --no-save, so this writes package.json and the lockfile. The runner is thrown
+      # away when the job ends and nothing is released from here, so neither is read again.
       - name: Install the Prisma version under test
         run: >-
-          npm install --no-save
+          pnpm add -D
           prisma@${{ matrix.prisma }}
           @prisma/client@${{ matrix.prisma }}
           @prisma/adapter-pg@${{ matrix.prisma }}
           @prisma/driver-adapter-utils@${{ matrix.prisma }}
 
-      # **The preset's own commands, not npm scripts.** `lint`, `check` and `compile` were root
-      # scripts; they are commands `@panates/rman-preset` contributes now, so every repository
-      # extending it spells them the same way and pins the flags in one place - dpdm's
-      # `--exit-code circular:1` above all, without which it reports a cycle and still exits 0.
-      # All three scripts these steps called had already been deleted from package.json, so this
-      # job could not have passed: `npm run lint`, `check` and `compile` each exited 1, and
-      # `citest` exited 127 on a `rimraf` that is no longer a dependency.
+      # **The preset's own commands, not the package scripts that wrap them.** They are commands
+      # `@panates/rman-preset` contributes, so every repository extending it spells them the same
+      # way and pins the flags in one place - dpdm's `--exit-code circular:1` above all, without
+      # which it reports a cycle and still exits 0.
       - name: Run linter test
         run: rman lint
 
@@ -92,7 +91,7 @@ jobs:
         run: rman compile
 
       - name: Run unit tests
-        run: npm run citest
+        run: pnpm run citest
         env:
           PGHOST: 127.0.0.1
           PGPORT: 5432
@@ -100,9 +99,13 @@ jobs:
           PGPASSWORD: postgres
           PGDATABASE: postgres
 
-      - name: Send coverage to Coveralls
-        uses: coverallsapp/github-action@v2
-        # Run only once
+      # The release sends this report to Coveralls, under the release commit on main. A test run
+      # here would publish coverage for a branch nobody released, and Coveralls keeps the last
+      # upload it saw, so dev's numbers would outrank main's.
+      - name: Keep the coverage report for the release
+        uses: actions/upload-artifact@v7
+        # One matrix cell's report is the repository's coverage
         if: ${{ matrix.node == '22' && matrix.postgres == '18' && matrix.prisma == '7.10.0' }}
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: coverage
+          path: coverage/lcov.info

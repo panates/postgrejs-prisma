@@ -23,7 +23,7 @@ point read is the faster of the two in 99 of 101 alternated pairs. All of it thr
 
 <!-- /bench:intro -->
 
-### ➜ [**THE FULL BENCHMARK**](doc/BENCHMARKS.md)
+### ➜ [**THE FULL BENCHMARK**](docs/BENCHMARKS.md)
 
 Fourteen workloads, time and memory, measured twice over - once through `PrismaClient` and once
 through the adapter alone. Every figure on this page comes out of that run.
@@ -159,7 +159,7 @@ schema, the same queries, the same migrations. What you get for it:
 `@prisma/client` 7.10.0, `@prisma/adapter-pg` 7.10.0, `postgrejs` 3.12.1, `pg` 8.23.0, PostgreSQL
 18.6 and Node 24.15.0, on loopback. Medians per call. The second line of each cell is what one call
 asks the runtime for, `heapUsed` and `external` together. How that was measured, and the same rows
-without the query engine, are in [`doc/BENCHMARKS.md`](doc/BENCHMARKS.md).
+without the query engine, are in [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md).
 
 <!-- /bench:headline -->
 
@@ -252,9 +252,9 @@ and printing it again. So the string is PostgreSQL's own and nothing on this sid
 session's `DateStyle`, `IntervalStyle` or `TimeZone` to produce it. The reference adapter reaches
 the same place by switching `pg`'s parsers off one at a time.
 
-Run it yourself with `npm run bench`, and re-render this page with `npm run bench:report` - every
+Run it yourself with `ppnpm run bench`, and re-render this page with `ppnpm run bench:report` - every
 figure here is generated from one results file, and none of it is typed in by hand.
-[`doc/BENCHMARKS.md`](doc/BENCHMARKS.md) has the rest of the method, the memory a client holds
+[`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) has the rest of the method, the memory a client holds
 between calls, and what crosses the wire.
 
 ## Tested against Prisma's own suite
@@ -277,7 +277,7 @@ Left out of the table: 81 more that fail identically on both sides and so judge 
 local clone of the Prisma repository does not have the `/client/…` path its inline snapshots were
 recorded against.
 
-Run it yourself with `npm run test:prisma-suite`. It clones the tag, patches `js_postgrejs` into
+Run it yourself with `ppnpm run test:prisma-suite`. It clones the tag, patches `js_postgrejs` into
 the adapter matrix, and runs both adapters.
 
 On top of that, 360 tests of this package's own - and a differential suite among them that runs
@@ -375,12 +375,12 @@ The unit tests need nothing; the live and differential ones need a PostgreSQL at
 `PGDATABASE` override.
 
 ```sh
-npm test                    # unit, live and differential tests
-npm run citest              # the same, with coverage
-npm run test:prisma-suite   # Prisma's own functional suite, both adapters
+pnpm test                    # unit, live and differential tests
+pnpm run citest              # the same, with coverage
+pnpm run test:prisma-suite   # Prisma's own functional suite, both adapters
 
-npm run bench               # measure both adapters, write benchmark/results/latest.json
-npm run bench:report        # render that file into this page and doc/BENCHMARKS.md
+pnpm run bench               # measure both adapters, write benchmark/results/latest.json
+pnpm run bench:report        # render that file into this page and docs/BENCHMARKS.md
 
 rman build                  # compile, and assemble the publishable tree
 rman lint                   # eslint (--fix to apply what it can)
@@ -401,21 +401,21 @@ The tests come in four kinds, and the split is deliberate:
 - `test/D-tooling` - no server either. The benchmark's report renderer, whose job is that no figure
   on this page was typed in by hand.
 
-`npm run test:prisma-suite` is the fifth and the slowest. It clones `prisma/prisma` at the tag
+`ppnpm run test:prisma-suite` is the fifth and the slowest. It clones `prisma/prisma` at the tag
 this package targets, patches `js_postgrejs` into the adapter matrix, and runs the whole functional
 suite twice - once with `@prisma/adapter-pg` as the control, once with this one - then reports only
 what differs. It takes about forty minutes and 4 GB of disk, nearly all of it the two suite runs,
 so it is a before-a-release tool rather than a per-push one. `SKIP_INSTALL=1` reuses an existing
 checkout and skips the clone and build.
 
-`npm run bench` needs the same server, creates its own `prisma_bench` database and rebuilds the
+`ppnpm run bench` needs the same server, creates its own `prisma_bench` database and rebuilds the
 schema in it on every run. The timings alternate the two adapters inside every pair in one process;
 the memory is a second pass in a child process per adapter, which is the only way to see what a
 client allocates once and keeps. `--no-memory` skips that pass, `--heap-pairs=N` shortens it, and
 `--scenario=` and `--pairs=` narrow the whole thing while iterating.
 
-`npm run bench:report` reads the results file and rewrites the marked regions of this page and all
-of `doc/BENCHMARKS.md`, so the two cannot drift apart - edit the renderer, never the numbers. It
+`ppnpm run bench:report` reads the results file and rewrites the marked regions of this page and all
+of `docs/BENCHMARKS.md`, so the two cannot drift apart - edit the renderer, never the numbers. It
 runs nothing, so an older results file renders as readily as the last one: pass its path.
 
 ## License
