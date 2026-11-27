@@ -181,6 +181,8 @@ Inherited from `../postgrejs`; they apply from the first commit.
   public, protected, private), `protected` over `private`.
 - Work stays in this repo. `../postgrejs` belongs to its own session; a defect found here gets
   written up as a task file there, the way the TypeORM round did, rather than fixed from here.
+- A handoff note between sessions goes to `.claude/local/handoff.md` (git-ignored); a new session
+  reads it first.
 
 ## Local setup
 
