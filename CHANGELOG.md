@@ -1,6 +1,39 @@
 # Changelog
 
-<!-- rman:documented-up-to 1f6f13b69fc743be9be7d5c7e72b44804e9eccfc -->
+<!-- rman:documented-up-to f5367d9e2e10715753a69a9dea67e0d5a10c7798 -->
+
+## v1.1.2 (2026-11-27)
+
+### 📚 Documentation
+
+- point at the postgrejs notes where they now live (5ac59a0)
+- add the security policy, code of conduct and issue templates (513cd99)
+- move doc/ to docs/ (5288269)
+- describe the repository as it is, not as the round that preceded it (da4d83c)
+
+### 📦 Build System
+
+- install, lock and publish with pnpm (dff83fb)
+
+### 🤖 Continuous Integration
+
+- send coverage from the release, add the main-from-dev guard, declare job permissions (02a86ea)
+- publish through Trusted Publishing alone (8d6d1dd)
+
+### 🧹 Chores
+
+- sync lockfile [skip ci] (6ec69ae)
+- take the standard config files and add the missing root scripts (2fab973)
+- drop the Renovate config (5698c17)
+- share the Claude settings and name where a handoff note goes (8e43bc2)
+- keep graphify's git hooks out of git (fb7ec10)
+
+### 💬 General Changes
+
+- Merge remote-tracking branch 'origin/dev' into chore/standards (0c75c6c)
+- Merge pull request #11 from panates/docs/claude-md-state (27bc1a3)
+
+---
 
 ## v1.1.1 (2026-11-15)
 
