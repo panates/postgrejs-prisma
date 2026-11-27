@@ -1,5 +1,5 @@
 /**
- * Renders the last `npm run bench` into `doc/BENCHMARKS.md` and into the
+ * Renders the last `npm run bench` into `docs/BENCHMARKS.md` and into the
  * marked regions of `README.md`.
  *
  * The figures were hand-copied before this existed, and they had already
@@ -37,7 +37,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
 const RESULTS = new URL('./results/latest.json', import.meta.url);
-const DOC = new URL('../doc/BENCHMARKS.md', import.meta.url);
+const DOC = new URL('../docs/BENCHMARKS.md', import.meta.url);
 const README = new URL('../README.md', import.meta.url);
 
 /** Below this, a sign test is taken as having settled the question. */
@@ -917,7 +917,7 @@ export function readmeRegions(results) {
         memory
           ? ' The second line of each cell is what one call asks the runtime for, `heapUsed` and `external` together.'
           : ''
-      } How that was measured, and the same rows without the query engine, are in [\`doc/BENCHMARKS.md\`](doc/BENCHMARKS.md).`,
+      } How that was measured, and the same rows without the query engine, are in [\`docs/BENCHMARKS.md\`](docs/BENCHMARKS.md).`,
     )}`,
 
     shape: wrap(
@@ -974,6 +974,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   await writeFile(README, readme);
 
   console.log(
-    `doc/BENCHMARKS.md and README.md rendered from the run of ${results.measuredAt}`,
+    `docs/BENCHMARKS.md and README.md rendered from the run of ${results.measuredAt}`,
   );
 }

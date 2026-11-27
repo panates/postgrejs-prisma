@@ -23,7 +23,7 @@ point read is the faster of the two in 99 of 101 alternated pairs. All of it thr
 
 <!-- /bench:intro -->
 
-### ➜ [**THE FULL BENCHMARK**](doc/BENCHMARKS.md)
+### ➜ [**THE FULL BENCHMARK**](docs/BENCHMARKS.md)
 
 Fourteen workloads, time and memory, measured twice over - once through `PrismaClient` and once
 through the adapter alone. Every figure on this page comes out of that run.
@@ -159,7 +159,7 @@ schema, the same queries, the same migrations. What you get for it:
 `@prisma/client` 7.10.0, `@prisma/adapter-pg` 7.10.0, `postgrejs` 3.12.1, `pg` 8.23.0, PostgreSQL
 18.6 and Node 24.15.0, on loopback. Medians per call. The second line of each cell is what one call
 asks the runtime for, `heapUsed` and `external` together. How that was measured, and the same rows
-without the query engine, are in [`doc/BENCHMARKS.md`](doc/BENCHMARKS.md).
+without the query engine, are in [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md).
 
 <!-- /bench:headline -->
 
@@ -254,7 +254,7 @@ the same place by switching `pg`'s parsers off one at a time.
 
 Run it yourself with `npm run bench`, and re-render this page with `npm run bench:report` - every
 figure here is generated from one results file, and none of it is typed in by hand.
-[`doc/BENCHMARKS.md`](doc/BENCHMARKS.md) has the rest of the method, the memory a client holds
+[`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) has the rest of the method, the memory a client holds
 between calls, and what crosses the wire.
 
 ## Tested against Prisma's own suite
@@ -380,7 +380,7 @@ npm run citest              # the same, with coverage
 npm run test:prisma-suite   # Prisma's own functional suite, both adapters
 
 npm run bench               # measure both adapters, write benchmark/results/latest.json
-npm run bench:report        # render that file into this page and doc/BENCHMARKS.md
+npm run bench:report        # render that file into this page and docs/BENCHMARKS.md
 
 rman build                  # compile, and assemble the publishable tree
 rman lint                   # eslint (--fix to apply what it can)
@@ -415,7 +415,7 @@ client allocates once and keeps. `--no-memory` skips that pass, `--heap-pairs=N`
 `--scenario=` and `--pairs=` narrow the whole thing while iterating.
 
 `npm run bench:report` reads the results file and rewrites the marked regions of this page and all
-of `doc/BENCHMARKS.md`, so the two cannot drift apart - edit the renderer, never the numbers. It
+of `docs/BENCHMARKS.md`, so the two cannot drift apart - edit the renderer, never the numbers. It
 runs nothing, so an older results file renders as readily as the last one: pass its path.
 
 ## License

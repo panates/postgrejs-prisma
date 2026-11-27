@@ -108,7 +108,7 @@ options)` implements `SqlMigrationAwareDriverAdapterFactory`.
 - **The Kysely dialect**: `../postgrejs-kysely` - finished.
 - **The Drizzle driver**: `../postgrejs-drizzle` - finished.
 - **The TypeORM facade**: `../postgrejs-typeorm` - in progress in its own session, and the most
-  useful of the three to read. Its `doc/DRIVER-DESIGN.md` §5 (parameters) and §6 (a 64-type
+  useful of the three to read. Its `docs/DRIVER-DESIGN.md` §5 (parameters) and §6 (a 64-type
   measurement of what `pg` returns against what PostgreJS returns) answer questions this round would
   otherwise pay for a second time. **Copy its measurements, not its conclusions** - it is a `pg`
   facade and this is not, so what it decided about being `pg`-faithful does not transfer.
