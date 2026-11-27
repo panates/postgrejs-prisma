@@ -4,10 +4,11 @@ A [Prisma](https://www.prisma.io) driver adapter for
 [PostgreJS](https://github.com/panates/postgrejs), so a Prisma schema can run on PostgreJS's
 wire-protocol client instead of `pg`.
 
-**Nothing in `src/` yet, and nothing should be written until the recon round in
-`.claude/prisma-adapter-recon.md` is done.** That round is unusual: its first question is whether
-this package should exist at all, and "do not build it" is a result to report rather than a failure
-to work around. Read the next section before anything else.
+**The recon round is over, it said build it, and the package shipped.** Its first question was
+whether this package should exist at all; the measurement said yes, `src/` holds the adapter and the
+version is 1.1.1. `docs/ADAPTER-DESIGN.md` is that round written up - what was measured, what was
+tried and dropped, and the defects it filed upstream. Read it before changing anything in `src/`,
+and read the next section for the constraint that still governs the design.
 
 ## Read this first: Prisma was already rejected once
 
@@ -42,10 +43,11 @@ What is new since that decision, measured 2026-09-21 and the reason the repo exi
   the largest remaining target, 3.5x `knex`.
 
 So the case for this package rests on **protocol throughput and nothing else**, and the recon round
-has to price exactly that before a line of `src/` is written. If PostgreJS does not beat `pg`
-measurably *through the adapter*, with the flattening in place and the engine on the other side,
-then the honest deliverable is a report saying so. Say it plainly in that case; it is a useful
-answer and it is cheaper than a package nobody has a reason to install.
+priced exactly that before a line of `src/` was written. PostgreJS does beat `pg` through the
+adapter, with the flattening in place and the engine on the other side; `docs/BENCHMARKS.md` carries
+the run and the README's tables are rendered from it. That is still the only argument this package
+has, which is what makes it a live constraint rather than history: a change that costs throughput
+and buys richer decoding is a change in the wrong direction.
 
 ## The seam, as verified
 
@@ -102,19 +104,18 @@ options)` implements `SqlMigrationAwareDriverAdapterFactory`.
 
 ## Where things are
 
-- **PostgreJS**: `../postgrejs`, and its `CLAUDE.md` describes the internals. Develop against the
-  working copy; the peer floor is whatever ships the fixes below (3.7.0 is published and does
-  **not** contain them).
+- **PostgreJS**: `../postgrejs`, and its `CLAUDE.md` describes the internals. The peer floor is
+  `>=3.12.1 <4`; `package.json` is the authority on it, not this line.
 - **The Kysely dialect**: `../postgrejs-kysely` - finished.
 - **The Drizzle driver**: `../postgrejs-drizzle` - finished.
-- **The TypeORM facade**: `../postgrejs-typeorm` - in progress in its own session, and the most
-  useful of the three to read. Its `docs/DRIVER-DESIGN.md` §5 (parameters) and §6 (a 64-type
-  measurement of what `pg` returns against what PostgreJS returns) answer questions this round would
-  otherwise pay for a second time. **Copy its measurements, not its conclusions** - it is a `pg`
+- **The TypeORM facade**: `../postgrejs-typeorm` - finished, and the most useful of the three to
+  read. Its `docs/DRIVER-DESIGN.md` §5 (parameters) and §6 (a 64-type measurement of what `pg`
+  returns against what PostgreJS returns) answer questions this round would otherwise pay for a
+  second time. **Copy its measurements, not its conclusions** - it is a `pg`
   facade and this is not, so what it decided about being `pg`-faithful does not transfer.
 
-Three of the defects those rounds reported upstream are **fixed on `../postgrejs`'s `dev`** and the
-older notes about them are stale:
+Three of the defects those rounds reported upstream are **fixed and released**, and the older notes
+about them are stale:
 
 - a binary array parameter wrote lower bound 0; it writes 1 now (vectors still 0).
 - a `Date` parameter was declared `timestamp` and did not round-trip through `timestamptz`; it goes
@@ -122,10 +123,12 @@ older notes about them are stale:
 - a string parameter was declared `varchar`, so a json column, a uuid comparison, an enum and
   `coalesce($1, 1)` all refused it; strings go out unspecified now as well.
 
-That last one matters here more than anywhere: **Prisma hands parameters over with its own
-`argTypes`**, so the question is not "what does `determine()` guess" but "does an `ArgType` map onto
-a PostgreSQL OID this client can be told to use" - `new BindParam(oid, value)` names one explicitly.
-Answer it with measurement; it is question 3 of the recon.
+That last one mattered here more than anywhere: **Prisma hands parameters over with its own
+`argTypes`**, so the question was not "what does `determine()` guess" but "does an `ArgType` map onto
+a PostgreSQL OID this client can be told to use". The measurement settled it the other way -
+`docs/ADAPTER-DESIGN.md` §3: do not drive `new BindParam(oid, value)` from `argTypes`. `argTypes` is
+not an enum of types to map onto OIDs, and what decides the handling is the shape of the value by
+the time the adapter sees it.
 
 ## What PostgreJS gives you
 
