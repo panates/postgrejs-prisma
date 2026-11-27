@@ -37,7 +37,10 @@
     "bench": "node benchmark/bench.mjs",
     "bench:report": "node benchmark/render-report.mjs",
     "precitest": "rman clean",
-    "citest": "c8 mocha"
+    "citest": "c8 mocha",
+    "lint": "rman lint",
+    "check": "rman check",
+    "format": "rman format"
   },
   "type": "module",
   "module": "./index.js",

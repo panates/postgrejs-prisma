@@ -5,8 +5,8 @@ import globals from 'globals';
 export default [
   {
     ignores: [
-      'build/**/*',
       'node_modules/**/*',
+      'build/**/*',
       'test-*/**/*',
       // A generated Prisma client, for the benchmark's own schema.
       'benchmark/generated/**/*',
@@ -16,7 +16,7 @@ export default [
   {
     languageOptions: {
       globals: {
-        ...globals.jest,
+        ...globals.mocha,
       },
     },
   },
