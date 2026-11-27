@@ -28,7 +28,7 @@ way, and they are marked in place - but the trajectory is worth having in one pi
 it is the round feeding back into PostgreJS itself.
 
 **Six defects went upstream, all six fixed.** Each was measured here, written up as a task file in
-`../postgrejs/.claude/`, and fixed in that repo's own session. Three *more* were filed and had to be
+`../postgrejs/.claude/local/`, and fixed in that repo's own session. Three *more* were filed and had to be
 withdrawn, which is its own lesson - see *What this round got wrong*:
 
 | reported | what it was | fixed by |
@@ -1291,7 +1291,7 @@ And one that is not a measurement failure at all, kept here because it cost a da
 
 - **One upstream fix not yet in a build here.** `660aa54` stops an array parameter declaring its
   element type; the working copy's `build/` predates it, so `typed-sql/postgres-lists :: Decimal -
-  input` still fails in Prisma's suite until it is rebuilt. `../postgrejs/.claude/` is otherwise
+  input` still fails in Prisma's suite until it is rebuilt. `../postgrejs/.claude/local/` is otherwise
   empty - nothing of this round's is outstanding.
 - **`decimalAsString` (`605e91e`) is now redundant here, and that is worth saying out loud.** It
   was added because this round reported `money` as a client gap; the gap was mine to fill, and
