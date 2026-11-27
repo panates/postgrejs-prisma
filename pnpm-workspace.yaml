@@ -1,0 +1,18 @@
+# pnpm holds back any version younger than a day by default. Our own packages are released
+# and used by other repositories on the same day, so this repository takes them at once.
+minimumReleaseAge: 0
+
+# Packages with an install script: true lets pnpm run it, false blocks it. The compiler the tests
+# run on and eslint's module resolver are listed in every repository; the value is the repository's.
+allowBuilds:
+  '@swc/core': true
+  unrs-resolver: true
+  # Prisma's postinstall fetches the query engine binaries the client and the CLI run on.
+  '@prisma/engines': true
+  prisma: true
+
+# A flat node_modules, as npm wrote it before. scripts/run-prisma-suite.sh walks postgrejs's
+# dependency tree out of this repository's node_modules and copies it into the Prisma checkout, so
+# that both adapters run against one build of the client. pnpm's default layout leaves a
+# transitive dependency reachable only through .pnpm/, where that walk does not find it.
+nodeLinker: hoisted

@@ -357,7 +357,7 @@ describe('render-report/writing', () => {
       'signtest',
     ]);
     expect(regions.headline).toContain(
-      '[`doc/BENCHMARKS.md`](doc/BENCHMARKS.md)',
+      '[`docs/BENCHMARKS.md`](docs/BENCHMARKS.md)',
     );
     expect(regions.signtest).toContain('< 1 in 10^18');
 

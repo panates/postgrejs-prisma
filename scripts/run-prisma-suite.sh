@@ -138,7 +138,7 @@ const skipped = []
 
 // Read straight off disk rather than through require.resolve: a package whose
 // "exports" does not list ./package.json (ts-gems, for one) cannot be resolved
-// that way, and npm installs this repository flat anyway.
+// that way, and pnpm installs this repository flat (nodeLinker: hoisted) anyway.
 const walk = name => {
   if (seen.has(name)) return
   seen.add(name)

@@ -1,32 +1,45 @@
+# Dependencies
 node_modules
-/build
-*.tsbuildinfo
-.claude
-graphify-out
-/test-*
-/benchmark/generated
 
-# environment variables
+# Build output
+build/
+*.tsbuildinfo
+
+# Environment variables: only an example file is committed
 .env
-.development.env
+.env.*
+!.env.example
 
 # Logs
 logs
 *.log
-npm-debug.log*
 
 # OS
 .DS_Store
 
 # Tests
 /coverage
-/reports
 /.nyc_output
+
+# Claude Code: .claude/settings.json is shared and committed, these are local
+# (.claude/local/ holds the handoff note between sessions)
+.claude/settings.local.json
+.claude/worktrees/
+.claude/local/
+graphify-out
+
+# graphify installs its git hooks into .husky/, where git runs them in this clone; they are not
+# the repository's, so they stay out of git
+.husky/post-checkout
+.husky/post-commit
+.husky/post-merge
+.husky/post-rewrite
 
 # IDEs and editors
 /.idea
 .project
 .classpath
+.c9/
 *.launch
 .settings/
 *.sublime-workspace
@@ -37,3 +50,8 @@ npm-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# This repository: the recon checkout, the benchmark's generated Prisma client and its reports
+/test-*
+/benchmark/generated
+/reports

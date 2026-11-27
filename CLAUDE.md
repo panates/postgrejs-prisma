@@ -108,7 +108,7 @@ options)` implements `SqlMigrationAwareDriverAdapterFactory`.
 - **The Kysely dialect**: `../postgrejs-kysely` - finished.
 - **The Drizzle driver**: `../postgrejs-drizzle` - finished.
 - **The TypeORM facade**: `../postgrejs-typeorm` - in progress in its own session, and the most
-  useful of the three to read. Its `doc/DRIVER-DESIGN.md` §5 (parameters) and §6 (a 64-type
+  useful of the three to read. Its `docs/DRIVER-DESIGN.md` §5 (parameters) and §6 (a 64-type
   measurement of what `pg` returns against what PostgreJS returns) answer questions this round would
   otherwise pay for a second time. **Copy its measurements, not its conclusions** - it is a `pg`
   facade and this is not, so what it decided about being `pg`-faithful does not transfer.
@@ -181,6 +181,8 @@ Inherited from `../postgrejs`; they apply from the first commit.
   public, protected, private), `protected` over `private`.
 - Work stays in this repo. `../postgrejs` belongs to its own session; a defect found here gets
   written up as a task file there, the way the TypeORM round did, rather than fixed from here.
+- A handoff note between sessions goes to `.claude/local/handoff.md` (git-ignored); a new session
+  reads it first.
 
 ## Local setup
 
